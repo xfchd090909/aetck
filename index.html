@@ -42,21 +42,27 @@
         h1 {
             margin-bottom: 1.5rem;
             font-size: 1.5rem;
+            transition: margin-bottom 0.3s ease;
         }
         
         .button-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 0;
             margin-top: 20px;
+            transition: gap 0.3s ease;
+        }
+        
+        .button-container.has-download {
+            gap: 15px;
         }
         
         .button-row {
             display: flex;
             justify-content: center;
-            gap: 10px;
             width: 100%;
+            transition: all 0.3s ease;
         }
         
         button {
@@ -73,6 +79,8 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            width: 100%;
+            max-width: 300px;
         }
         
         button:hover {
@@ -92,17 +100,15 @@
         
         .download-btn {
             opacity: 0;
-            transform: translateY(-10px);
-            transition: opacity 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-                        transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            height: 0;
+            overflow: hidden;
+            transition: opacity 0.4s ease, height 0.4s ease;
             background-color: #2ed573;
-            pointer-events: none;
         }
         
-        .download-btn.show {
+        .download-btn.visible {
             opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
+            height: auto;
         }
         
         .loading {
@@ -124,6 +130,7 @@
             margin-top: 20px;
             font-size: 0.8rem;
             color: #666;
+            transition: margin-top 0.3s ease;
         }
         
         .toast {
@@ -163,18 +170,13 @@
                 padding: 8px 16px;
                 font-size: 0.9rem;
             }
-            
-            .button-row {
-                flex-direction: column;
-                gap: 10px;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>点击下方按钮随机生成图片</h1>
-        <div class="button-container">
+        <div class="button-container" id="button-container">
             <div class="button-row">
                 <button id="random-btn">
                     <i class="fas fa-random"></i>
@@ -201,11 +203,13 @@
         document.addEventListener('DOMContentLoaded', function() {
             const randomBtn = document.getElementById('random-btn');
             const downloadBtn = document.getElementById('download-btn');
+            const buttonContainer = document.getElementById('button-container');
             const loadingElement = document.getElementById('loading');
             const toastElement = document.getElementById('toast');
             let currentImageUrl = '';
             let currentImageBlob = null;
             let isFetching = false;
+            let hasFirstImage = false;
             
             // 显示提示信息
             function showToast(message) {
@@ -244,9 +248,11 @@
                 // 显示加载动画
                 loadingElement.style.display = 'block';
                 
-                // 隐藏并禁用下载按钮
-                downloadBtn.classList.remove('show');
-                downloadBtn.disabled = true;
+                // 如果是第一次获取，隐藏下载按钮
+                if (!hasFirstImage) {
+                    downloadBtn.classList.remove('visible');
+                    downloadBtn.disabled = true;
+                }
                 
                 // 添加时间戳防止缓存
                 const apiUrl = 'https://www.loliapi.com/acg/' + '?timestamp=' + new Date().getTime();
@@ -267,11 +273,15 @@
                         // 图片加载完成后设置背景
                         document.body.style.backgroundImage = `url(${currentImageUrl})`;
                         
+                        // 标记已有第一张图片
+                        hasFirstImage = true;
+                        
                         // 显示并启用下载按钮
                         setTimeout(() => {
-                            downloadBtn.classList.add('show');
+                            downloadBtn.classList.add('visible');
                             downloadBtn.disabled = false;
-                        }, 300);
+                            buttonContainer.classList.add('has-download');
+                        }, 100);
                     } else {
                         throw new Error('无法获取图片数据');
                     }
