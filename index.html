@@ -182,11 +182,24 @@
             const downloadBtn = document.getElementById('download-btn');
             const loadingElement = document.getElementById('loading');
             let currentImageUrl = '';
+            let currentImageBlob = null;
             
             // 设置初始背景为空白
             document.body.style.backgroundImage = 'none';
             
-            randomBtn.addEventListener('click', function() {
+            // 将图片URL转换为Blob对象
+            async function urlToBlob(url) {
+                try {
+                    const response = await fetch(url);
+                    const blob = await response.blob();
+                    return blob;
+                } catch (error) {
+                    console.error('转换Blob失败:', error);
+                    return null;
+                }
+            }
+            
+            randomBtn.addEventListener('click', async function() {
                 // 显示加载动画
                 loadingElement.style.display = 'block';
                 
@@ -196,43 +209,56 @@
                 // 添加时间戳防止缓存
                 const apiUrl = 'https://www.loliapi.com/acg/' + '?timestamp=' + new Date().getTime();
                 
-                // 创建一个新的Image对象来预加载图片
-                const img = new Image();
-                img.crossOrigin = 'Anonymous';
-                
-                img.onload = function() {
-                    // 图片加载完成后设置背景
-                    document.body.style.backgroundImage = `url(${apiUrl})`;
-                    currentImageUrl = apiUrl;
+                try {
+                    // 获取图片并转换为Blob
+                    currentImageBlob = await urlToBlob(apiUrl);
                     
-                    // 显示下载按钮
-                    setTimeout(() => {
-                        downloadBtn.classList.add('show');
-                    }, 300);
-                    
+                    if (currentImageBlob) {
+                        // 创建对象URL用于显示和下载
+                        currentImageUrl = URL.createObjectURL(currentImageBlob);
+                        
+                        // 图片加载完成后设置背景
+                        document.body.style.backgroundImage = `url(${currentImageUrl})`;
+                        
+                        // 显示下载按钮
+                        setTimeout(() => {
+                            downloadBtn.classList.add('show');
+                        }, 300);
+                    } else {
+                        throw new Error('无法获取图片数据');
+                    }
+                } catch (error) {
+                    // 加载失败处理
+                    alert('图片加载失败，请重试: ' + error.message);
+                } finally {
                     // 隐藏加载动画
                     loadingElement.style.display = 'none';
-                };
-                
-                img.onerror = function() {
-                    // 加载失败处理
-                    alert('图片加载失败，请重试');
-                    loadingElement.style.display = 'none';
-                };
-                
-                // 开始加载图片
-                img.src = apiUrl;
+                }
             });
             
             downloadBtn.addEventListener('click', function() {
-                if (currentImageUrl) {
+                if (currentImageUrl && currentImageBlob) {
                     // 创建一个临时a标签触发下载
                     const a = document.createElement('a');
                     a.href = currentImageUrl;
                     a.download = 'random-anime-' + new Date().getTime() + '.jpg';
                     document.body.appendChild(a);
                     a.click();
-                    document.body.removeChild(a);
+                    
+                    // 清理
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        // 注意: 不要在这里撤销对象URL，因为背景还在使用它
+                    }, 100);
+                } else {
+                    alert('没有可下载的图片');
+                }
+            });
+            
+            // 页面卸载时清理对象URL
+            window.addEventListener('beforeunload', function() {
+                if (currentImageUrl) {
+                    URL.revokeObjectURL(currentImageUrl);
                 }
             });
         });
