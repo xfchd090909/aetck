@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Æ-随机二次元</title>
+    <title>Æ-随机二次元图片</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -45,9 +46,17 @@
         
         .button-container {
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .button-row {
+            display: flex;
             justify-content: center;
             gap: 10px;
-            margin-top: 20px;
+            width: 100%;
         }
         
         button {
@@ -60,6 +69,10 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         
         button:hover {
@@ -73,14 +86,14 @@
         
         .download-btn {
             opacity: 0;
-            transform: translateX(-20px);
+            transform: translateY(-20px);
             transition: opacity 0.3s ease, transform 0.3s ease;
             background-color: #2ed573;
         }
         
         .download-btn.show {
             opacity: 1;
-            transform: translateX(0);
+            transform: translateY(0);
         }
         
         .loading {
@@ -96,6 +109,21 @@
             height: 30px;
             animation: spin 1s linear infinite;
             margin: 0 auto;
+        }
+        
+        .api-credit {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .api-credit a {
+            color: #ff6b81;
+            text-decoration: none;
+        }
+        
+        .api-credit a:hover {
+            text-decoration: underline;
         }
         
         @keyframes spin {
@@ -116,20 +144,36 @@
                 padding: 8px 16px;
                 font-size: 0.9rem;
             }
+            
+            .button-row {
+                flex-direction: column;
+                gap: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>点击下方随机生成图片</h1>
+        <h1>点击下方按钮随机生成图片</h1>
         <div class="button-container">
-            <button id="random-btn">随机二次元图片</button>
-            <button id="download-btn" class="download-btn">下载图片</button>
+            <div class="button-row">
+                <button id="random-btn">
+                    <i class="fas fa-random"></i>
+                    <span>随机二次元图片</span>
+                </button>
+            </div>
+            <div class="button-row">
+                <button id="download-btn" class="download-btn">
+                    <i class="fas fa-download"></i>
+                    <span>下载图片</span>
+                </button>
+            </div>
         </div>
         <div class="loading" id="loading">
             <div class="spinner"></div>
             <p>加载中...</p>
         </div>
+        <p class="api-credit">功能由 <a href="https://www.loliapi.com/" target="_blank">https://www.loliapi.com/</a> 提供</p>
     </div>
 
     <script>
