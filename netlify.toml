@@ -1,24 +1,19 @@
 [build]
-  # 根据你的项目构建命令修改，例如Vue项目可能是npm run build
+  # 纯静态网站无需构建命令
   command = ""
-  # 输出目录，根据你的项目修改
+  # 发布根目录下的所有文件
   publish = "."
 
-# 配置代理规则，将/github-pages/*路径代理到你的GitHub Pages
+# 配置代理规则，合并所有请求方法
 [[redirects]]
   from = "/github-pages/*"
   to = "https://xfchd090909.github.io/aetck/:splat"
   status = 200
   force = true
+  methods = ["GET", "POST", "OPTIONS"]  # 明确允许的方法
   [redirects.headers]
     Access-Control-Allow-Origin = "https://aetck.dpdns.org/"
     Access-Control-Allow-Methods = "GET, POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type"
-
-# 处理预检请求(OPTIONS)
-[[redirects]]
-  from = "/github-pages/*"
-  to = "https://xfchd090909.github.io/aetck/:splat"
-  status = 200
-  method = "OPTIONS"
-    
+    # 如果需要传递cookie等凭证，取消下面这行的注释
+    # Access-Control-Allow-Credentials = "true"
