@@ -491,8 +491,10 @@
                     downloadBtn.disabled = true;
                 }
                 
-                // 添加时间戳防止缓存
-                const apiUrl = currentApi + (currentApi.includes('?') ? '&' : '?') + 'timestamp=' + new Date().getTime();
+
+                const proxyPath = '/github-pages';
+                const apiUrl = proxyPath + (currentApi.includes('?') ? '&' : '?') + 'timestamp=' + new Date().getTime();
+
                 
                 try {
                     // 获取图片并转换为Blob
