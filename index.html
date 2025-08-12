@@ -194,27 +194,31 @@
             background-color: white;
             padding: 20px;
             border-radius: 8px;
-            max-width: 80%;
+            max-width: 90%;
             max-height: 80%;
             overflow-y: auto;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            width: 350px;
         }
 
         .modal-title {
             font-size: 1.2rem;
             margin-bottom: 15px;
             color: #333;
+            text-align: center;
         }
 
         .modal-message {
             margin-bottom: 20px;
             color: #555;
+            text-align: center;
         }
 
         .modal-buttons {
             display: flex;
-            justify-content: flex-end;
+            justify-content: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .modal-button {
@@ -223,6 +227,7 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.9rem;
+            min-width: 100px;
         }
 
         .modal-button.confirm {
@@ -235,26 +240,27 @@
             color: #333;
         }
 
-        /* API selector styles */
-        .api-selector {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 10px;
-        }
-
-        .api-btn {
-            padding: 6px 10px;
-            font-size: 0.75rem;
+        .modal-button.api {
             background-color: #4b7bec;
+            color: white;
+            margin: 4px;
+            flex-grow: 1;
         }
 
-        .api-btn:hover {
-            background-color: #3867d6;
+        .modal-button.api.warning {
+            background-color: #e74c3c;
         }
 
-        .api-btn.active {
-            background-color: #2d98da;
+        .modal-button.api:hover {
+            opacity: 0.9;
+        }
+
+        .current-api {
+            font-weight: bold;
+            color: #ff6b81;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 0.9rem;
         }
 
         /* Image container for non-default APIs */
@@ -323,27 +329,13 @@
 <body>
     <div class="control-panel">
         <div class="button-group" id="button-group">
-            <div class="api-selector" id="api-selector">
-                <button class="api-btn active" data-api="default">默认API</button>
-                <button class="api-btn" data-api="https://t.alcy.cc/">API 2</button>
-                <button class="api-btn" data-api="https://t.alcy.cc/mp">API 3</button>
-                <button class="api-btn" data-api="https://t.alcy.cc/fj">API 4</button>
-                <button class="api-btn" data-api="http://www.98qy.com/sjbz/api.php">API 5</button>
-                <button class="api-btn warning" data-api="https://api.mtyqx.cn/tapi/random.php">API 6</button>
-                <button class="api-btn warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=azurlane">API 7</button>
-                <button class="api-btn warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=bluearchive">API 8</button>
-                <button class="api-btn warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=genshinimpact">API 9</button>
-                <button class="api-btn warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=arknights">API 10</button>
-                <button class="api-btn warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=honkai">API 11</button>
-                <button class="api-btn warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=fate">API 12</button>
-                <button class="api-btn warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=frontline">API 13</button>
-                <button class="api-btn warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=princess">API 14</button>
-                <button class="api-btn warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=idolmaster">API 15</button>
-                <button class="api-btn warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=touhou">API 16</button>
-            </div>
             <button id="random-btn">
                 <i class="fas fa-random"></i>
                 <span>随机图片</span>
+            </button>
+            <button id="api-select-btn">
+                <i class="fas fa-server"></i>
+                <span>选择API源</span>
             </button>
             <button id="download-btn" class="download-btn" disabled>
                 <i class="fas fa-download"></i>
@@ -362,7 +354,37 @@
 
     <div class="toast" id="toast">请等待图片加载完成</div>
 
-    <!-- Modal for warnings -->
+    <!-- API Select Modal -->
+    <div class="modal" id="api-modal">
+        <div class="modal-content">
+            <div class="modal-title">选择图片API源</div>
+            <div class="current-api">当前API: <span id="current-api-display">默认API</span></div>
+            <div class="modal-message">请选择一个图片源，部分API可能包含敏感内容</div>
+            <div class="modal-buttons">
+                <button class="modal-button api" data-api="default">默认API</button>
+                <button class="modal-button api" data-api="https://t.alcy.cc/">API 2</button>
+                <button class="modal-button api" data-api="https://t.alcy.cc/mp">API 3</button>
+                <button class="modal-button api" data-api="https://t.alcy.cc/fj">API 4</button>
+                <button class="modal-button api" data-api="http://www.98qy.com/sjbz/api.php">API 5</button>
+                <button class="modal-button api warning" data-api="https://api.mtyqx.cn/tapi/random.php">API 6</button>
+                <button class="modal-button api warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=azurlane">API 7</button>
+                <button class="modal-button api warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=bluearchive">API 8</button>
+                <button class="modal-button api warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=genshinimpact">API 9</button>
+                <button class="modal-button api warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=arknights">API 10</button>
+                <button class="modal-button api warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=honkai">API 11</button>
+                <button class="modal-button api warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=fate">API 12</button>
+                <button class="modal-button api warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=frontline">API 13</button>
+                <button class="modal-button api warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=princess">API 14</button>
+                <button class="modal-button api warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=idolmaster">API 15</button>
+                <button class="modal-button api warning" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=touhou">API 16</button>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-button cancel" id="close-api-modal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warning Modal -->
     <div class="modal" id="warning-modal">
         <div class="modal-content">
             <div class="modal-title">警告</div>
@@ -394,8 +416,11 @@
             const toastElement = document.getElementById('toast');
             const controlPanel = document.querySelector('.control-panel');
             const toggleUiBtn = document.getElementById('toggle-ui-btn');
-            const apiSelector = document.getElementById('api-selector');
-            const apiButtons = document.querySelectorAll('.api-btn');
+            const apiSelectBtn = document.getElementById('api-select-btn');
+            const apiModal = document.getElementById('api-modal');
+            const closeApiModalBtn = document.getElementById('close-api-modal');
+            const apiButtons = document.querySelectorAll('.modal-button.api');
+            const currentApiDisplay = document.getElementById('current-api-display');
             const warningModal = document.getElementById('warning-modal');
             const warningMessage = document.getElementById('warning-message');
             const cancelBtn = document.getElementById('cancel-btn');
@@ -412,6 +437,25 @@
             let currentApi = 'default';
             let pendingApi = null;
             
+            const apiNames = {
+                'default': '默认API',
+                'https://t.alcy.cc/': 'API 2',
+                'https://t.alcy.cc/mp': 'API 3',
+                'https://t.alcy.cc/fj': 'API 4',
+                'http://www.98qy.com/sjbz/api.php': 'API 5',
+                'https://api.mtyqx.cn/tapi/random.php': 'API 6',
+                'https://image.anosu.top/pixiv/direct?r18=1&keyword=azurlane': 'API 7',
+                'https://image.anosu.top/pixiv/direct?r18=1&keyword=bluearchive': 'API 8',
+                'https://image.anosu.top/pixiv/direct?r18=1&keyword=genshinimpact': 'API 9',
+                'https://image.anosu.top/pixiv/direct?r18=1&keyword=arknights': 'API 10',
+                'https://image.anosu.top/pixiv/direct?r18=1&keyword=honkai': 'API 11',
+                'https://image.anosu.top/pixiv/direct?r18=1&keyword=fate': 'API 12',
+                'https://image.anosu.top/pixiv/direct?r18=1&keyword=frontline': 'API 13',
+                'https://image.anosu.top/pixiv/direct?r18=1&keyword=princess': 'API 14',
+                'https://image.anosu.top/pixiv/direct?r18=1&keyword=idolmaster': 'API 15',
+                'https://image.anosu.top/pixiv/direct?r18=1&keyword=touhou': 'API 16'
+            };
+            
             function showToast(message) {
                 toastElement.textContent = message;
                 toastElement.classList.add('show');
@@ -427,6 +471,14 @@
                     controlPanel.classList.add('hidden');
                     toggleUiBtn.classList.add('active');
                 }
+            }
+            
+            function showApiModal() {
+                apiModal.style.display = 'flex';
+            }
+            
+            function hideApiModal() {
+                apiModal.style.display = 'none';
             }
             
             function showWarningModal(apiUrl) {
@@ -458,30 +510,45 @@
             }
             
             function setActiveApi(apiUrl) {
-                apiButtons.forEach(btn => {
-                    if (btn.dataset.api === apiUrl) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
                 currentApi = apiUrl;
+                currentApiDisplay.textContent = apiNames[apiUrl] || apiUrl;
+                
+                // 如果是默认API，显示下载按钮
+                if (apiUrl === 'default' && currentImageUrl) {
+                    downloadBtn.disabled = false;
+                    downloadBtn.classList.add('visible');
+                } else {
+                    downloadBtn.classList.remove('visible');
+                    downloadBtn.disabled = true;
+                }
+                
+                hideApiModal();
+                showToast(`已切换至 ${apiNames[apiUrl] || apiUrl}`);
             }
             
             document.body.style.backgroundImage = 'none';
             
-            // API selector event
+            // API select button event
+            apiSelectBtn.addEventListener('click', showApiModal);
+            
+            // Close API modal button
+            closeApiModalBtn.addEventListener('click', hideApiModal);
+            
+            // API buttons events
             apiButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
                     const apiUrl = this.dataset.api;
                     
-                    if (apiUrl === currentApi) return;
+                    if (apiUrl === currentApi) {
+                        hideApiModal();
+                        return;
+                    }
                     
                     if (this.classList.contains('warning')) {
+                        hideApiModal();
                         showWarningModal(apiUrl);
                     } else {
                         setActiveApi(apiUrl);
-                        showToast(`已切换至 ${this.textContent}`);
                     }
                 });
             });
@@ -492,7 +559,6 @@
             confirmBtn.addEventListener('click', function() {
                 if (pendingApi) {
                     setActiveApi(pendingApi);
-                    showToast(`已切换至 API ${Array.from(apiButtons).find(b => b.dataset.api === pendingApi).textContent}`);
                     hideWarningModal();
                 }
             });
@@ -515,8 +581,10 @@
                 loadingElement.style.display = 'block';
                 
                 // 重置下载按钮状态
-                downloadBtn.classList.remove('visible');
-                downloadBtn.disabled = true;
+                if (currentApi !== 'default') {
+                    downloadBtn.classList.remove('visible');
+                    downloadBtn.disabled = true;
+                }
                 
                 try {
                     const timestamp = new Date().getTime();
