@@ -465,6 +465,9 @@
                 'https://image.anosu.top/pixiv/direct?r18=1&keyword=touhou': 'API 16'
             };
             
+            // 存储实际图片URL
+            let actualImageUrl = '';
+            
             function showToast(message) {
                 toastElement.textContent = message;
                 toastElement.classList.add('show');
@@ -502,7 +505,7 @@
             
             function showImageContainer(url) {
                 externalImg.src = url;
-                imageUrlInput.value = url;
+                imageUrlInput.value = actualImageUrl;
                 imgContainer.style.display = 'flex';
             }
             
@@ -538,27 +541,30 @@
             // 获取实际图片URL（处理重定向）
             async function getActualImageUrl(apiUrl) {
                 try {
-                    // 先尝试获取重定向后的URL
-                    const response = await fetch(apiUrl, {
-                        method: 'HEAD',
-                        redirect: 'follow'
+                    // 创建一个隐藏的img元素来获取重定向后的URL
+                    return new Promise((resolve, reject) => {
+                        const tempImg = new Image();
+                        tempImg.crossOrigin = "Anonymous";
+                        
+                        // 设置超时处理
+                        const timeout = setTimeout(() => {
+                            reject(new Error('获取图片URL超时'));
+                        }, 10000);
+                        
+                        tempImg.onload = function() {
+                            clearTimeout(timeout);
+                            // 获取最终的图片URL
+                            resolve(tempImg.src);
+                        };
+                        
+                        tempImg.onerror = function() {
+                            clearTimeout(timeout);
+                            reject(new Error('无法加载图片'));
+                        };
+                        
+                        // 启动图片加载
+                        tempImg.src = apiUrl;
                     });
-                    
-                    if (response.url && response.url !== apiUrl) {
-                        return response.url;
-                    }
-                    
-                    // 如果HEAD请求不行，尝试GET请求（但不获取完整内容）
-                    const imgResponse = await fetch(apiUrl, {
-                        redirect: 'follow'
-                    });
-                    
-                    if (imgResponse.url && imgResponse.url !== apiUrl) {
-                        return imgResponse.url;
-                    }
-                    
-                    // 如果都没有重定向，返回原始URL
-                    return apiUrl;
                 } catch (error) {
                     console.error('获取实际图片URL失败:', error);
                     return apiUrl;
@@ -604,7 +610,7 @@
             
             // Image container events
             copyBtn.addEventListener('click', function() {
-                copyToClipboard(imageUrlInput.value);
+                copyToClipboard(actualImageUrl);
             });
             
             closeImgBtn.addEventListener('click', hideImageContainer);
@@ -648,6 +654,9 @@
                             }, 200);
                         };
                         img.src = currentImageUrl;
+                        
+                        // 存储实际图片URL
+                        actualImageUrl = apiUrl;
                     } else {
                         // 对于外部API，获取实际图片URL
                         let finalApiUrl = apiUrl;
@@ -660,9 +669,9 @@
                         }
                         
                         // 获取实际图片URL（处理重定向）
-                        const actualUrl = await getActualImageUrl(finalApiUrl);
+                        actualImageUrl = await getActualImageUrl(finalApiUrl);
                         
-                        showImageContainer(actualUrl);
+                        showImageContainer(actualImageUrl);
                         showToast("由于CORS限制，请使用复制链接功能下载图片");
                     }
                 } catch (error) {
