@@ -320,6 +320,14 @@
             background-color: #3867d6;
         }
 
+        .download-tip {
+            color: #ccc;
+            font-size: 12px;
+            margin-top: 8px;
+            text-align: center;
+            max-width: 80%;
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -405,6 +413,7 @@
             <input type="text" id="image-url" readonly>
             <button id="copy-btn"><i class="fas fa-copy"></i> 复制</button>
         </div>
+        <p class="download-tip">如果复制链接无法下载，请右键图片选择"另存为"</p>
         <button class="close-btn" id="close-img-btn">关闭</button>
     </div>
 
@@ -526,6 +535,36 @@
                 showToast(`已切换至 ${apiNames[apiUrl] || apiUrl}`);
             }
             
+            // 获取实际图片URL（处理重定向）
+            async function getActualImageUrl(apiUrl) {
+                try {
+                    // 先尝试获取重定向后的URL
+                    const response = await fetch(apiUrl, {
+                        method: 'HEAD',
+                        redirect: 'follow'
+                    });
+                    
+                    if (response.url && response.url !== apiUrl) {
+                        return response.url;
+                    }
+                    
+                    // 如果HEAD请求不行，尝试GET请求（但不获取完整内容）
+                    const imgResponse = await fetch(apiUrl, {
+                        redirect: 'follow'
+                    });
+                    
+                    if (imgResponse.url && imgResponse.url !== apiUrl) {
+                        return imgResponse.url;
+                    }
+                    
+                    // 如果都没有重定向，返回原始URL
+                    return apiUrl;
+                } catch (error) {
+                    console.error('获取实际图片URL失败:', error);
+                    return apiUrl;
+                }
+            }
+            
             document.body.style.backgroundImage = 'none';
             
             // API select button event
@@ -610,17 +649,20 @@
                         };
                         img.src = currentImageUrl;
                     } else {
-                        // For external APIs, we'll use the image directly
+                        // 对于外部API，获取实际图片URL
                         let finalApiUrl = apiUrl;
                         
-                        // Add timestamp to avoid caching
+                        // 添加时间戳避免缓存
                         if (apiUrl.includes('?')) {
                             finalApiUrl += `&timestamp=${timestamp}`;
                         } else {
                             finalApiUrl += `?timestamp=${timestamp}`;
                         }
                         
-                        showImageContainer(finalApiUrl);
+                        // 获取实际图片URL（处理重定向）
+                        const actualUrl = await getActualImageUrl(finalApiUrl);
+                        
+                        showImageContainer(actualUrl);
                         showToast("由于CORS限制，请使用复制链接功能下载图片");
                     }
                 } catch (error) {
