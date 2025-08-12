@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Æ-随机二次元图片</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * {
             margin: 0;
@@ -50,8 +49,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 0;
             margin-top: 20px;
+            transition: gap 0.3s ease;
+        }
+        
+        .button-container.has-download {
+            gap: 15px;
         }
         
         .button-row {
@@ -94,20 +98,17 @@
             transform: none;
         }
         
-        .api-selector-btn {
-            background-color: #6366F1;
-        }
-        
-        .api-selector-btn:hover {
-            background-color: #4f46e5;
-        }
-        
         .download-btn {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+            transition: opacity 0.4s ease, height 0.4s ease;
             background-color: #2ed573;
         }
         
-        .download-btn:hover {
-            background-color: #25b864;
+        .download-btn.visible {
+            opacity: 1;
+            height: auto;
         }
         
         .loading {
@@ -150,22 +151,94 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
+
+        /* API 选择按钮样式 */
+        .api-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .api-selector button {
+            background-color: #6366F1;
+            max-width: 150px;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+        }
+
+        .api-selector button:hover {
+            background-color: #4F46E5;
+        }
+
+        .api-selector button.active {
+            background-color: #EC4899;
+        }
+
+        /* 模态框样式 - 从index (6).html提取 */
+        #apiModal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        #apiModal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #apiModalOverlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        #apiModalContent {
+            position: relative;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 28rem;
+            margin: 0 1rem;
+            padding: 1.5rem;
+            transform: perspective(800px) rotateY(90deg);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.215, 0.610, 0.355, 1.000);
+        }
+
+        #apiModal.show #apiModalContent {
+            transform: perspective(800px) rotateY(0deg);
+            opacity: 1;
+        }
+
+        #closeApiModal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: #6B7280;
+            cursor: pointer;
+        }
+
+        #closeApiModal:hover {
+            color: #374151;
+        }
+
+        .api-info {
+            margin-top: 1rem;
+            color: #4B5563;
+        }
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-        
-        @keyframes flipIn {
-            0% { transform: perspective(800px) rotateY(90deg); opacity: 0; }
-            40% { transform: perspective(800px) rotateY(-20deg); }
-            100% { transform: perspective(800px) rotateY(0deg); opacity: 1; }
-        }
-        
-        @keyframes flipOut {
-            0% { transform: perspective(800px) rotateY(0deg); opacity: 1; }
-            40% { transform: perspective(800px) rotateY(20deg); }
-            100% { transform: perspective(800px) rotateY(90deg); opacity: 0; }
         }
         
         @media (max-width: 600px) {
@@ -181,12 +254,34 @@
                 padding: 8px 16px;
                 font-size: 0.9rem;
             }
+
+            .api-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .api-selector button {
+                max-width: 100%;
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>点击下方按钮随机生成图片</h1>
+        
+        <div class="api-selector">
+            <button id="api1-btn" class="active">
+                <i class="fas fa-image"></i>
+                <span>默认API</span>
+            </button>
+            <button id="api2-btn">
+                <i class="fas fa-image"></i>
+                <span>API 2 (横屏)</span>
+            </button>
+        </div>
+        
         <div class="button-container" id="button-container">
             <div class="button-row">
                 <button id="random-btn">
@@ -200,12 +295,6 @@
                     <span>下载图片</span>
                 </button>
             </div>
-            <div class="button-row">
-                <button id="api-selector-btn" class="api-selector-btn">
-                    <i class="fas fa-cog"></i>
-                    <span>选择API源</span>
-                </button>
-            </div>
         </div>
         <div class="loading" id="loading">
             <div class="spinner"></div>
@@ -216,81 +305,16 @@
 
     <div class="toast" id="toast">在图片获取完成之前不要连续点击</div>
 
-    <!-- API Selector Modal -->
-    <div id="apiModal" class="fixed inset-0 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="absolute inset-0 bg-black/50" id="apiModalOverlay"></div>
-        <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 transform origin-center opacity-0 perspective-800" id="apiModalContent">
-            <button id="closeApiModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
-                <i class="fa fa-times"></i>
+    <!-- API 信息模态框 -->
+    <div id="apiModal">
+        <div id="apiModalOverlay"></div>
+        <div id="apiModalContent">
+            <button id="closeApiModal">
+                <i class="fas fa-times"></i>
             </button>
-            <h3 class="text-xl font-bold text-gray-800 mb-4">选择API源</h3>
-            <div class="space-y-3 text-gray-700 max-h-[60vh] overflow-y-auto">
-                <div class="grid grid-cols-1 gap-3">
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://www.loliapi.com/acg/" data-name="默认API">
-                        <div class="font-semibold">默认API</div>
-                        <div class="text-sm text-gray-500">通用的二次元图片API</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://t.alcy.cc/" data-name="Api 2（横屏）">
-                        <div class="font-semibold">Api 2（横屏）</div>
-                        <div class="text-sm text-gray-500">横屏二次元图片</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://t.alcy.cc/mp" data-name="Api 3（竖屏）">
-                        <div class="font-semibold">Api 3（竖屏）</div>
-                        <div class="text-sm text-gray-500">竖屏二次元图片</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://t.alcy.cc/fj" data-name="Api 4（横屏）">
-                        <div class="font-semibold">Api 4（横屏）</div>
-                        <div class="text-sm text-gray-500">横屏二次元图片</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="http://www.98qy.com/sjbz/api.php" data-name="Api 5（横屏）">
-                        <div class="font-semibold">Api 5（横屏）</div>
-                        <div class="text-sm text-gray-500">横屏二次元图片</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://api.mtyqx.cn/tapi/random.php" data-name="Api 6（横屏）">
-                        <div class="font-semibold">Api 6（横屏）</div>
-                        <div class="text-sm text-gray-500">横屏二次元图片</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=azurlane" data-name="Api 7（敏感内容、横屏）">
-                        <div class="font-semibold">Api 7（敏感内容、横屏）</div>
-                        <div class="text-sm text-gray-500">碧蓝航线主题图片（可能包含敏感内容）</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=bluearchive" data-name="Api 8（敏感内容、碧蓝档案、横屏）">
-                        <div class="font-semibold">Api 8（敏感内容、碧蓝档案、横屏）</div>
-                        <div class="text-sm text-gray-500">碧蓝档案主题图片（可能包含敏感内容）</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=genshinimpact" data-name="Api 9（敏感内容、原神、横屏）">
-                        <div class="font-semibold">Api 9（敏感内容、原神、横屏）</div>
-                        <div class="text-sm text-gray-500">原神主题图片（可能包含敏感内容）</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=arknights" data-name="Api 10（敏感内容、明日方舟、横屏）">
-                        <div class="font-semibold">Api 10（敏感内容、明日方舟、横屏）</div>
-                        <div class="text-sm text-gray-500">明日方舟主题图片（可能包含敏感内容）</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=honkai" data-name="Api 11（敏感内容、崩坏3、横屏）">
-                        <div class="font-semibold">Api 11（敏感内容、崩坏3、横屏）</div>
-                        <div class="text-sm text-gray-500">崩坏3主题图片（可能包含敏感内容）</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=fate" data-name="Api 12（敏感内容、命运、横屏）">
-                        <div class="font-semibold">Api 12（敏感内容、命运、横屏）</div>
-                        <div class="text-sm text-gray-500">命运系列主题图片（可能包含敏感内容）</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=frontline" data-name="Api 13（敏感内容、少女前线、横屏）">
-                        <div class="font-semibold">Api 13（敏感内容、少女前线、横屏）</div>
-                        <div class="text-sm text-gray-500">少女前线主题图片（可能包含敏感内容）</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=princess" data-name="Api 14（敏感内容、公主连结、横屏）">
-                        <div class="font-semibold">Api 14（敏感内容、公主连结、横屏）</div>
-                        <div class="text-sm text-gray-500">公主连结主题图片（可能包含敏感内容）</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=idolmaster" data-name="Api 15（敏感内容、偶像大师、横屏）">
-                        <div class="font-semibold">Api 15（敏感内容、偶像大师、横屏）</div>
-                        <div class="text-sm text-gray-500">偶像大师主题图片（可能包含敏感内容）</div>
-                    </button>
-                    <button class="api-option-btn p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-left" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=touhou" data-name="Api 16（敏感内容、东方、横屏）">
-                        <div class="font-semibold">Api 16（敏感内容、东方、横屏）</div>
-                        <div class="text-sm text-gray-500">东方Project主题图片（可能包含敏感内容）</div>
-                    </button>
-                </div>
+            <h3 id="apiModalTitle" class="text-xl font-bold text-gray-800 mb-4">API 信息</h3>
+            <div id="apiModalDescription" class="api-info">
+                <!-- 动态内容将在这里显示 -->
             </div>
         </div>
     </div>
@@ -299,67 +323,39 @@
         document.addEventListener('DOMContentLoaded', function() {
             const randomBtn = document.getElementById('random-btn');
             const downloadBtn = document.getElementById('download-btn');
-            const apiSelectorBtn = document.getElementById('api-selector-btn');
             const buttonContainer = document.getElementById('button-container');
             const loadingElement = document.getElementById('loading');
             const toastElement = document.getElementById('toast');
-            
-            // API Modal elements
+            const api1Btn = document.getElementById('api1-btn');
+            const api2Btn = document.getElementById('api2-btn');
             const apiModal = document.getElementById('apiModal');
+            const apiModalOverlay = document.getElementById('apiModalOverlay');
             const apiModalContent = document.getElementById('apiModalContent');
             const closeApiModal = document.getElementById('closeApiModal');
-            const apiModalOverlay = document.getElementById('apiModalOverlay');
-            const apiOptionBtns = document.querySelectorAll('.api-option-btn');
+            const apiModalTitle = document.getElementById('apiModalTitle');
+            const apiModalDescription = document.getElementById('apiModalDescription');
             
             let currentImageUrl = '';
             let currentImageBlob = null;
             let isFetching = false;
             let hasFirstImage = false;
-            let currentApi = 'https://www.loliapi.com/acg/';
-            let currentApiName = '默认API';
+            let currentApi = 'default'; // 'default' 或 'api2'
             
-            // Modal functions
-            function openApiModal() {
-                apiModal.classList.remove('opacity-0', 'pointer-events-none');
-                setTimeout(() => {
-                    apiModalContent.classList.add('flip-in');
-                    apiModalContent.classList.remove('opacity-0');
-                }, 100);
-                document.body.style.overflow = 'hidden';
-            }
-            
-            function closeApiModalFunc() {
-                apiModalContent.classList.add('flip-out');
-                setTimeout(() => {
-                    apiModal.classList.add('opacity-0', 'pointer-events-none');
-                    apiModalContent.classList.remove('flip-in', 'flip-out');
-                }, 600);
-                document.body.style.overflow = '';
-            }
-            
-            // API selection
-            apiOptionBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    currentApi = this.getAttribute('data-api');
-                    currentApiName = this.getAttribute('data-name');
-                    showToast(`已切换到: ${currentApiName}`);
-                    closeApiModalFunc();
-                });
-            });
-            
-            // Modal event listeners
-            apiSelectorBtn.addEventListener('click', openApiModal);
-            closeApiModal.addEventListener('click', closeApiModalFunc);
-            apiModalOverlay.addEventListener('click', closeApiModalFunc);
-            
-            // Escape key to close modal
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && !apiModal.classList.contains('opacity-0')) {
-                    closeApiModalFunc();
+            // API 信息
+            const apiInfo = {
+                default: {
+                    name: "默认API",
+                    url: "https://www.loliapi.com/acg/",
+                    description: "这是默认的二次元图片API，提供随机的二次元图片。适用于各种设备，图片尺寸会根据设备自动调整。"
+                },
+                api2: {
+                    name: "API 2 (横屏)",
+                    url: "https://t.alcy.cc/",
+                    description: "这个API提供横屏的二次元图片，适合在电脑上使用。图片通常为宽屏比例，可能不适合移动设备。"
                 }
-            });
+            };
             
-            // Show toast message
+            // 显示提示信息
             function showToast(message) {
                 toastElement.textContent = message;
                 toastElement.classList.add('show');
@@ -368,124 +364,138 @@
                 }, 2000);
             }
             
-            // Set initial background to none
+            // 显示API信息模态框
+            function showApiModal(apiKey) {
+                const api = apiInfo[apiKey];
+                apiModalTitle.textContent = api.name;
+                apiModalDescription.innerHTML = `
+                    <p><strong>API地址:</strong> ${api.url}</p>
+                    <p>${api.description}</p>
+                `;
+                apiModal.classList.add('show');
+            }
+            
+            // 关闭API信息模态框
+            function closeApiModalFunc() {
+                apiModal.classList.remove('show');
+            }
+            
+            // 设置初始背景为空白
             document.body.style.backgroundImage = 'none';
             
-            // Convert image URL to Blob with CORS proxy for GitHub Pages
+            // 将图片URL转换为Blob对象
             async function urlToBlob(url) {
                 try {
-                    // Use CORS proxy for GitHub Pages
-                    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-                    const response = await fetch(proxyUrl + url, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
+                    const response = await fetch(url);
                     const blob = await response.blob();
                     return blob;
                 } catch (error) {
                     console.error('转换Blob失败:', error);
-                    
-                    // Fallback to direct fetch if proxy fails
-                    try {
-                        const response = await fetch(url);
-                        const blob = await response.blob();
-                        return blob;
-                    } catch (fallbackError) {
-                        console.error('直接获取也失败:', fallbackError);
-                        return null;
-                    }
+                    return null;
                 }
             }
             
-            // Random image button click handler
-            randomBtn.addEventListener('click', async function() {
+            // 获取随机图片
+            async function getRandomImage() {
                 if (isFetching) {
                     showToast("在图片获取完成之前不要连续点击");
-                    return;
+                    return null;
                 }
                 
-                // Set fetching state
                 isFetching = true;
                 randomBtn.disabled = true;
-                
-                // Show loading animation
                 loadingElement.style.display = 'block';
                 
-                // Hide download button if first image
                 if (!hasFirstImage) {
+                    downloadBtn.classList.remove('visible');
                     downloadBtn.disabled = true;
                 }
                 
-                // Add timestamp to prevent caching
-                const apiUrl = currentApi + (currentApi.includes('?') ? '&' : '?') + 'timestamp=' + new Date().getTime();
+                let apiUrl;
+                if (currentApi === 'default') {
+                    apiUrl = apiInfo.default.url + '?timestamp=' + new Date().getTime();
+                } else {
+                    apiUrl = apiInfo.api2.url + '?timestamp=' + new Date().getTime();
+                }
                 
                 try {
-                    // Get image and convert to Blob
-                    currentImageBlob = await urlToBlob(apiUrl);
-                    
-                    if (currentImageBlob) {
-                        // Release previous object URL
+                    const blob = await urlToBlob(apiUrl);
+                    if (blob) {
                         if (currentImageUrl) {
                             URL.revokeObjectURL(currentImageUrl);
                         }
+                        currentImageUrl = URL.createObjectURL(blob);
+                        currentImageBlob = blob;
                         
-                        // Create object URL for display and download
-                        currentImageUrl = URL.createObjectURL(currentImageBlob);
-                        
-                        // Set background after image loads
                         document.body.style.backgroundImage = `url(${currentImageUrl})`;
-                        
-                        // Mark that we have first image
                         hasFirstImage = true;
                         
-                        // Show and enable download button
                         setTimeout(() => {
+                            downloadBtn.classList.add('visible');
                             downloadBtn.disabled = false;
+                            buttonContainer.classList.add('has-download');
                         }, 100);
                     } else {
                         throw new Error('无法获取图片数据');
                     }
                 } catch (error) {
-                    // Handle loading failure
-                    showToast('图片加载失败，请重试或更换API源');
+                    showToast('图片加载失败，请重试');
+                    console.error('获取图片失败:', error);
+                    return null;
                 } finally {
-                    // Hide loading animation
                     loadingElement.style.display = 'none';
-                    // Reset fetching state
                     isFetching = false;
                     randomBtn.disabled = false;
                 }
-            });
+                
+                return currentImageUrl;
+            }
             
-            // Download button click handler
+            // 事件监听器
+            randomBtn.addEventListener('click', getRandomImage);
+            
             downloadBtn.addEventListener('click', function() {
                 if (currentImageUrl && currentImageBlob) {
-                    // Create temporary anchor tag to trigger download
                     const a = document.createElement('a');
                     a.href = currentImageUrl;
                     a.download = 'random-anime-' + new Date().getTime() + '.jpg';
                     document.body.appendChild(a);
                     a.click();
                     
-                    // Clean up
                     setTimeout(() => {
                         document.body.removeChild(a);
                     }, 100);
                 }
             });
             
-            // Clean up object URL when page unloads
+            // API 选择按钮事件
+            api1Btn.addEventListener('click', function() {
+                currentApi = 'default';
+                api1Btn.classList.add('active');
+                api2Btn.classList.remove('active');
+                showApiModal('default');
+            });
+            
+            api2Btn.addEventListener('click', function() {
+                currentApi = 'api2';
+                api2Btn.classList.add('active');
+                api1Btn.classList.remove('active');
+                showApiModal('api2');
+            });
+            
+            // 模态框关闭事件
+            closeApiModal.addEventListener('click', closeApiModalFunc);
+            apiModalOverlay.addEventListener('click', closeApiModalFunc);
+            
+            // 页面卸载时清理对象URL
             window.addEventListener('beforeunload', function() {
                 if (currentImageUrl) {
                     URL.revokeObjectURL(currentImageUrl);
                 }
             });
+            
+            // 初始显示默认API信息
+            showApiModal('default');
         });
     </script>
 </body>
