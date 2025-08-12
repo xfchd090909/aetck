@@ -19,6 +19,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            overflow: hidden;
         }
         
         .image-container {
@@ -51,6 +52,7 @@
             bottom: 0;
             backdrop-filter: blur(2px);
             transition: transform 0.3s ease;
+            z-index: 10;
         }
         
         .control-panel.hidden {
@@ -309,12 +311,27 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        .image-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            max-width: 80%;
+            z-index: 5;
+        }
     </style>
 </head>
 <body>
     <div class="image-container" id="image-container">
         <!-- 图片将通过JS动态添加 -->
     </div>
+    
+    <div class="image-info" id="image-info" style="display: none;"></div>
 
     <div class="control-panel">
         <div class="button-group" id="button-group">
@@ -393,6 +410,7 @@
             const cancelWarningBtn = document.getElementById('cancel-warning-btn');
             const confirmWarningBtn = document.getElementById('confirm-warning-btn');
             const imageContainer = document.getElementById('image-container');
+            const imageInfo = document.getElementById('image-info');
             
             let currentImageUrl = '';
             let isFetching = false;
@@ -400,6 +418,11 @@
             let selectedApi = null;
             let currentApi = null;
             let currentImageElement = null;
+            let currentImageBlobUrl = '';
+            let currentImageOriginalUrl = '';
+            
+            // 使用CORS代理服务
+            const corsProxyUrl = "https://corsproxy.io/?";
             
             // API配置
             const apiConfigs = [
@@ -498,6 +521,14 @@
                     currentImageUrl = '';
                 }
                 
+                if (currentImageBlobUrl) {
+                    URL.revokeObjectURL(currentImageBlobUrl);
+                    currentImageBlobUrl = '';
+                }
+                
+                currentImageOriginalUrl = '';
+                imageInfo.style.display = 'none';
+                
                 downloadBtn.classList.remove('visible');
                 downloadBtn.disabled = true;
             }
@@ -513,6 +544,9 @@
                 const img = new Image();
                 img.onload = () => {
                     document.body.style.backgroundImage = `url(${url})`;
+                    document.body.style.backgroundSize = 'cover';
+                    document.body.style.backgroundPosition = 'center';
+                    document.body.style.backgroundRepeat = 'no-repeat';
                     setTimeout(() => {
                         downloadBtn.disabled = false;
                         downloadBtn.classList.add('visible');
@@ -534,10 +568,33 @@
                     setTimeout(() => {
                         downloadBtn.disabled = false;
                         downloadBtn.classList.add('visible');
+                        
+                        // 显示图片信息
+                        imageInfo.textContent = `尺寸: ${currentImageElement.naturalWidth}×${currentImageElement.naturalHeight}px`;
+                        imageInfo.style.display = 'block';
                     }, 200);
                 };
                 currentImageElement.src = url;
                 imageContainer.appendChild(currentImageElement);
+            }
+            
+            // 使用代理获取图片
+            async function fetchImageViaProxy(url) {
+                try {
+                    const proxyUrl = corsProxyUrl + encodeURIComponent(url);
+                    const response = await fetch(proxyUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`网络响应错误: ${response.status}`);
+                    }
+                    
+                    const blob = await response.blob();
+                    return URL.createObjectURL(blob);
+                } catch (error) {
+                    console.error('代理获取图片失败:', error);
+                    showToast('获取图片失败，请重试');
+                    return null;
+                }
             }
             
             randomBtn.addEventListener('click', async function() {
@@ -568,14 +625,22 @@
                         
                         loadImageWithBackground(currentImageUrl);
                     } else {
-                        // 使用<img>标签直接加载
-                        if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
-                        currentImageUrl = apiUrl;
+                        // 使用代理获取图片
+                        clearCurrentImage();
                         
-                        loadImageWithImgTag(currentImageUrl);
+                        // 先显示原始URL的图片（快速显示）
+                        currentImageOriginalUrl = apiUrl;
+                        loadImageWithImgTag(apiUrl);
+                        
+                        // 在后台获取Blob URL用于下载
+                        const blobUrl = await fetchImageViaProxy(apiUrl);
+                        if (blobUrl) {
+                            currentImageBlobUrl = blobUrl;
+                        }
                     }
                 } catch (error) {
                     showToast('加载失败，请重试');
+                    console.error(error);
                 } finally {
                     loadingElement.style.display = 'none';
                     isFetching = false;
@@ -584,20 +649,32 @@
             });
             
             downloadBtn.addEventListener('click', function() {
-                if (!currentImageUrl) return;
+                if (!currentImageUrl && !currentImageBlobUrl && !currentImageOriginalUrl) return;
                 
                 const link = document.createElement('a');
-                link.href = currentImageUrl;
                 
                 if (currentApi.useBackground) {
                     // 背景图下载
+                    link.href = currentImageUrl;
                     link.download = `anime-${new Date().getTime()}.jpg`;
                 } else {
-                    // <img>标签下载
-                    link.download = `genshin-${new Date().getTime()}.jpg`;
+                    // <img>标签下载 - 优先使用代理获取的Blob URL
+                    if (currentImageBlobUrl) {
+                        link.href = currentImageBlobUrl;
+                        link.download = `genshin-${new Date().getTime()}.jpg`;
+                    } else if (currentImageOriginalUrl) {
+                        // 如果Blob URL不可用，尝试直接下载原始URL
+                        link.href = currentImageOriginalUrl;
+                        link.download = `genshin-${new Date().getTime()}.jpg`;
+                    } else {
+                        showToast('无法下载图片');
+                        return;
+                    }
                 }
                 
+                document.body.appendChild(link);
                 link.click();
+                document.body.removeChild(link);
             });
             
             changeApiBtn.addEventListener('click', showApiModal);
@@ -632,6 +709,7 @@
             
             window.addEventListener('beforeunload', () => {
                 if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
+                if (currentImageBlobUrl) URL.revokeObjectURL(currentImageBlobUrl);
             });
             
             // 页面加载后显示API选择弹窗
