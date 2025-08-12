@@ -16,13 +16,28 @@
             font-family: 'Arial', sans-serif;
             min-height: 100vh;
             background-color: #f5f5f5;
-            transition: background-image 0.5s ease;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
             display: flex;
             flex-direction: column;
+            position: relative;
+        }
+        
+        .image-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: -1;
+        }
+        
+        .image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: opacity 0.5s ease;
         }
         
         .control-panel {
@@ -297,6 +312,10 @@
     </style>
 </head>
 <body>
+    <div class="image-container" id="image-container">
+        <!-- 图片将通过JS动态添加 -->
+    </div>
+
     <div class="control-panel">
         <div class="button-group" id="button-group">
             <button id="random-btn">
@@ -373,12 +392,14 @@
             const confirmApiBtn = document.getElementById('confirm-api-btn');
             const cancelWarningBtn = document.getElementById('cancel-warning-btn');
             const confirmWarningBtn = document.getElementById('confirm-warning-btn');
+            const imageContainer = document.getElementById('image-container');
             
             let currentImageUrl = '';
             let isFetching = false;
             let uiVisible = true;
             let selectedApi = null;
             let currentApi = null;
+            let currentImageElement = null;
             
             // API配置
             const apiConfigs = [
@@ -386,13 +407,15 @@
                     name: "默认API",
                     url: "https://www.loliapi.com/acg/",
                     description: "普通二次元图片，适合所有用户",
-                    warning: false
+                    warning: false,
+                    useBackground: true  // 使用背景图方式加载
                 },
                 {
                     name: "原神-敏感内容",
                     url: "https://image.anosu.top/pixiv/direct?r18=1&keyword=arknights",
                     description: "可能包含不适合所有用户的内容",
-                    warning: true
+                    warning: true,
+                    useBackground: false  // 使用<img>标签加载
                 }
             ];
             
@@ -459,20 +482,63 @@
                 warningModal.classList.remove('active');
             }
             
-            function changeApi(api) {
-                currentApi = api;
-                showToast(`已切换至: ${api.name}`);
-                // 重置当前图片
+            function clearCurrentImage() {
+                // 清除当前图片
+                if (currentApi.useBackground) {
+                    document.body.style.backgroundImage = 'none';
+                } else {
+                    if (currentImageElement) {
+                        currentImageElement.remove();
+                        currentImageElement = null;
+                    }
+                }
+                
                 if (currentImageUrl) {
                     URL.revokeObjectURL(currentImageUrl);
                     currentImageUrl = '';
-                    document.body.style.backgroundImage = 'none';
-                    downloadBtn.classList.remove('visible');
-                    downloadBtn.disabled = true;
                 }
+                
+                downloadBtn.classList.remove('visible');
+                downloadBtn.disabled = true;
             }
             
-            document.body.style.backgroundImage = 'none';
+            function changeApi(api) {
+                clearCurrentImage();
+                currentApi = api;
+                showToast(`已切换至: ${api.name}`);
+            }
+            
+            function loadImageWithBackground(url) {
+                // 使用背景图方式加载
+                const img = new Image();
+                img.onload = () => {
+                    document.body.style.backgroundImage = `url(${url})`;
+                    setTimeout(() => {
+                        downloadBtn.disabled = false;
+                        downloadBtn.classList.add('visible');
+                    }, 200);
+                };
+                img.src = url;
+            }
+            
+            function loadImageWithImgTag(url) {
+                // 使用<img>标签方式加载
+                if (currentImageElement) {
+                    currentImageElement.remove();
+                }
+                
+                currentImageElement = document.createElement('img');
+                currentImageElement.style.opacity = '0';
+                currentImageElement.onload = () => {
+                    currentImageElement.style.opacity = '1';
+                    setTimeout(() => {
+                        downloadBtn.disabled = false;
+                        downloadBtn.classList.add('visible');
+                    }, 200);
+                };
+                currentImageElement.src = url;
+                imageContainer.appendChild(currentImageElement);
+            }
             
             randomBtn.addEventListener('click', async function() {
                 if (isFetching) {
@@ -491,22 +557,23 @@
                 try {
                     const timestamp = new Date().getTime();
                     const apiUrl = currentApi.url + (currentApi.url.includes('?') ? '&' : '?') + 'timestamp=' + timestamp;
-                    const response = await fetch(apiUrl);
-                    const blob = await response.blob();
                     
-                    if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
-                    currentImageUrl = URL.createObjectURL(blob);
-                    
-                    const img = new Image();
-                    img.onload = () => {
-                        document.body.style.backgroundImage = `url(${currentImageUrl})`;
-                        // 添加延迟让加载动画更自然
-                        setTimeout(() => {
-                            downloadBtn.disabled = false;
-                            downloadBtn.classList.add('visible');
-                        }, 200);
-                    };
-                    img.src = currentImageUrl;
+                    if (currentApi.useBackground) {
+                        // 使用背景图方式加载
+                        const response = await fetch(apiUrl);
+                        const blob = await response.blob();
+                        
+                        if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
+                        currentImageUrl = URL.createObjectURL(blob);
+                        
+                        loadImageWithBackground(currentImageUrl);
+                    } else {
+                        // 使用<img>标签直接加载
+                        if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
+                        currentImageUrl = apiUrl;
+                        
+                        loadImageWithImgTag(currentImageUrl);
+                    }
                 } catch (error) {
                     showToast('加载失败，请重试');
                 } finally {
@@ -518,9 +585,18 @@
             
             downloadBtn.addEventListener('click', function() {
                 if (!currentImageUrl) return;
+                
                 const link = document.createElement('a');
                 link.href = currentImageUrl;
-                link.download = `anime-${new Date().getTime()}.jpg`;
+                
+                if (currentApi.useBackground) {
+                    // 背景图下载
+                    link.download = `anime-${new Date().getTime()}.jpg`;
+                } else {
+                    // <img>标签下载
+                    link.download = `genshin-${new Date().getTime()}.jpg`;
+                }
+                
                 link.click();
             });
             
