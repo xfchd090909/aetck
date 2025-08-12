@@ -15,7 +15,7 @@
         body {
             font-family: 'Arial', sans-serif;
             min-height: 100vh;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
             transition: background-image 0.5s ease;
             background-size: cover;
             background-position: center;
@@ -23,59 +23,96 @@
             background-attachment: fixed;
             display: flex;
             flex-direction: column;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .title {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: #6a5af9;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            color: #666;
+            font-weight: normal;
         }
         
         .control-panel {
             background-color: rgba(255, 255, 255, 0.85);
-            padding: 8px;
-            border-radius: 8px 8px 0 0;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.1);
             width: 100%;
             margin-top: auto;
             position: sticky;
             bottom: 0;
-            backdrop-filter: blur(2px);
+            backdrop-filter: blur(8px);
             transition: transform 0.3s ease;
+            max-width: 500px;
+            margin: 0 auto;
+            border: 1px solid rgba(0,0,0,0.05);
         }
         
         .control-panel.hidden {
-            transform: translateY(100%);
+            transform: translateY(150%);
         }
         
         .button-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            max-width: 300px;
+            gap: 12px;
             margin: 0 auto;
             overflow: hidden;
         }
         
         button {
-            padding: 6px 12px;
+            padding: 12px 18px;
             border: none;
-            border-radius: 4px;
-            background-color: #ff6b81;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ff6b81, #ff4757);
             color: white;
-            font-size: 0.85rem;
+            font-size: 1rem;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 10px;
             width: 100%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         
         button:hover {
-            background-color: #ff4757;
-            transform: translateY(-1px);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+        
+        button:active {
+            transform: translateY(1px);
         }
         
         button:disabled {
-            background-color: #cccccc;
+            background: #cccccc;
             cursor: not-allowed;
             transform: none !important;
+            box-shadow: none;
+        }
+        
+        .api-btn {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
         }
         
         .download-btn {
@@ -84,7 +121,7 @@
             height: 0;
             padding: 0;
             margin: 0;
-            background-color: #2ed573;
+            background: linear-gradient(135deg, #2ed573, #1dd1a1);
             transition: 
                 opacity 0.4s ease,
                 transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
@@ -97,46 +134,50 @@
             opacity: 1;
             transform: translateX(0);
             height: auto;
-            padding: 6px 12px;
+            padding: 12px 18px;
             margin: 0;
         }
         
         .loading {
             display: none;
-            margin: 4px 0;
+            margin: 8px 0;
         }
         
         .spinner {
-            border: 2px solid rgba(0, 0, 0, 0.1);
+            border: 3px solid rgba(0, 0, 0, 0.1);
             border-radius: 50%;
-            border-top: 2px solid #ff6b81;
-            width: 16px;
-            height: 16px;
+            border-top: 3px solid #ff6b81;
+            width: 24px;
+            height: 24px;
             animation: spin 0.8s linear infinite;
             margin: 0 auto;
         }
         
         .notice {
-            font-size: 0.6rem;
+            font-size: 0.75rem;
             color: #666;
-            margin-top: 4px;
+            margin-top: 8px;
             text-align: center;
             transition: all 0.3s ease;
+            background: rgba(255,255,255,0.7);
+            padding: 8px;
+            border-radius: 8px;
         }
         
         .toast {
             position: fixed;
-            top: 12px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%) translateY(-20px);
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.8);
             color: white;
-            padding: 6px 12px;
-            border-radius: 4px;
+            padding: 10px 20px;
+            border-radius: 8px;
             opacity: 0;
             transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             z-index: 1000;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
         .toast.show {
@@ -146,13 +187,13 @@
         
         .toggle-ui-btn {
             position: fixed;
-            bottom: 10px;
-            right: 10px;
-            width: 36px;
-            height: 36px;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, #ff6b81, #ff4757);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -162,18 +203,188 @@
         }
         
         .toggle-ui-btn:hover {
-            background-color: rgba(255, 255, 255, 1);
             transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.25);
         }
         
         .toggle-ui-btn i {
-            font-size: 1rem;
-            color: #333;
+            font-size: 1.2rem;
+            color: white;
             transition: transform 0.3s ease;
         }
         
         .toggle-ui-btn.active i {
             transform: rotate(180deg);
+        }
+        
+        .api-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .api-modal.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateY(20px);
+            transition: transform 0.4s ease;
+        }
+        
+        .api-modal.visible .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            color: #6a5af9;
+            font-weight: bold;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #999;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .close-modal:hover {
+            background: #f5f5f5;
+            color: #ff4757;
+        }
+        
+        .api-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .api-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f9f9ff;
+            border-radius: 10px;
+            border: 2px solid #eee;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .api-option:hover {
+            border-color: #6e8efb;
+            background: #f0f4ff;
+        }
+        
+        .api-option.selected {
+            border-color: #6e8efb;
+            background: #e6eeff;
+        }
+        
+        .api-option input {
+            margin-right: 12px;
+        }
+        
+        .api-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #444;
+        }
+        
+        .api-url {
+            font-size: 0.85rem;
+            color: #777;
+            word-break: break-all;
+        }
+        
+        .api-status {
+            margin-left: auto;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .status-active {
+            background: #d7ffe2;
+            color: #2ed573;
+        }
+        
+        .status-inactive {
+            background: #ffeaea;
+            color: #ff6b81;
+        }
+        
+        .current-api {
+            margin-top: 15px;
+            padding: 12px;
+            background: #f0f4ff;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .current-api span {
+            font-weight: bold;
+            color: #6a5af9;
+        }
+        
+        .info-box {
+            background: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 600px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .info-title {
+            color: #6a5af9;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .info-content {
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .info-highlight {
+            color: #ff6b81;
+            font-weight: bold;
         }
         
         @keyframes spin {
@@ -183,20 +394,34 @@
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1 class="title">随机二次元图片</h1>
+        <p class="subtitle">多种API源，海量高清壁纸</p>
+    </div>
+    
+    <div class="info-box">
+        <h2 class="info-title">使用指南</h2>
+        <p class="info-content">点击<span class="info-highlight">随机图片</span>按钮获取精美二次元图片，支持<span class="info-highlight">多API源</span>切换。<br>图片加载完成后可<span class="info-highlight">下载保存</span>，右下角按钮可<span class="info-highlight">隐藏/显示</span>控制面板。</p>
+    </div>
+
     <div class="control-panel">
         <div class="button-group" id="button-group">
+            <button id="api-btn" class="api-btn">
+                <i class="fas fa-exchange-alt"></i>
+                <span>选择API源</span>
+            </button>
             <button id="random-btn">
                 <i class="fas fa-random"></i>
                 <span>随机图片</span>
             </button>
             <button id="download-btn" class="download-btn" disabled>
                 <i class="fas fa-download"></i>
-                <span>下载</span>
+                <span>下载图片</span>
             </button>
             <div class="loading" id="loading">
                 <div class="spinner"></div>
             </div>
-            <p class="notice">移动设备生成移动端图片，PC端生成PC端图片</p>
+            <p class="notice">移动设备生成移动端图片，PC端生成PC端图片<br>当前API源: <span id="current-api-name">LoliAPI</span></p>
         </div>
     </div>
 
@@ -205,6 +430,55 @@
     </div>
 
     <div class="toast" id="toast">请等待图片加载完成</div>
+    
+    <div class="api-modal" id="api-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">选择API源</h3>
+                <button class="close-modal" id="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="api-options">
+                <div class="api-option selected" data-api="loli">
+                    <input type="radio" name="api" value="loli" checked>
+                    <div>
+                        <div class="api-name">LoliAPI</div>
+                        <div class="api-url">https://www.loliapi.com/acg/</div>
+                    </div>
+                    <div class="api-status status-active">当前使用</div>
+                </div>
+                
+                <div class="api-option" data-api="ycy">
+                    <input type="radio" name="api" value="ycy">
+                    <div>
+                        <div class="api-name">YCY API</div>
+                        <div class="api-url">https://t.alcy.cc/ycy</div>
+                    </div>
+                    <div class="api-status status-inactive">未使用</div>
+                </div>
+                
+                <div class="api-option" data-api="gh">
+                    <input type="radio" name="api" value="gh">
+                    <div>
+                        <div class="api-name">GitHub源</div>
+                        <div class="api-url">https://api.ghser.com/random/api.php</div>
+                    </div>
+                    <div class="api-status status-inactive">未使用</div>
+                </div>
+            </div>
+            
+            <div class="current-api">
+                当前选择的API源: <span id="selected-api-name">LoliAPI</span>
+            </div>
+            
+            <button id="confirm-api" style="width: 100%;">
+                <i class="fas fa-check"></i>
+                <span>确认选择</span>
+            </button>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -214,16 +488,34 @@
             const toastElement = document.getElementById('toast');
             const controlPanel = document.querySelector('.control-panel');
             const toggleUiBtn = document.getElementById('toggle-ui-btn');
+            const apiBtn = document.getElementById('api-btn');
+            const apiModal = document.getElementById('api-modal');
+            const closeModal = document.getElementById('close-modal');
+            const confirmApiBtn = document.getElementById('confirm-api');
+            const apiOptions = document.querySelectorAll('.api-option');
+            const currentApiName = document.getElementById('current-api-name');
+            const selectedApiName = document.getElementById('selected-api-name');
+            
             let currentImageUrl = '';
             let isFetching = false;
             let uiVisible = true;
             
+            // 当前API源
+            let currentApi = 'loli';
+            const apiSources = {
+                'loli': 'https://www.loliapi.com/acg/',
+                'ycy': 'https://t.alcy.cc/ycy',
+                'gh': 'https://api.ghser.com/random/api.php'
+            };
+            
+            // 显示提示消息
             function showToast(message) {
                 toastElement.textContent = message;
                 toastElement.classList.add('show');
-                setTimeout(() => toastElement.classList.remove('show'), 1500);
+                setTimeout(() => toastElement.classList.remove('show'), 2000);
             }
             
+            // 切换控制面板显示
             function toggleUI() {
                 uiVisible = !uiVisible;
                 if (uiVisible) {
@@ -235,8 +527,41 @@
                 }
             }
             
-            document.body.style.backgroundImage = 'none';
+            // 切换API模态框显示
+            function toggleApiModal() {
+                apiModal.classList.toggle('visible');
+            }
             
+            // 更新API选择状态
+            function updateApiStatus() {
+                apiOptions.forEach(option => {
+                    const status = option.querySelector('.api-status');
+                    if (option.dataset.api === currentApi) {
+                        option.classList.add('selected');
+                        status.textContent = '当前使用';
+                        status.className = 'api-status status-active';
+                    } else {
+                        option.classList.remove('selected');
+                        status.textContent = '未使用';
+                        status.className = 'api-status status-inactive';
+                    }
+                });
+                
+                // 更新显示的API名称
+                const apiNames = {
+                    'loli': 'LoliAPI',
+                    'ycy': 'YCY API',
+                    'gh': 'GitHub源'
+                };
+                
+                currentApiName.textContent = apiNames[currentApi];
+                selectedApiName.textContent = apiNames[currentApi];
+            }
+            
+            // 初始化页面
+            document.body.style.backgroundImage = 'url(https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80)';
+            
+            // 事件监听器
             randomBtn.addEventListener('click', async function() {
                 if (isFetching) {
                     showToast("请等待图片加载完成");
@@ -253,7 +578,9 @@
                 
                 try {
                     const timestamp = new Date().getTime();
-                    const response = await fetch(`https://www.loliapi.com/acg/?timestamp=${timestamp}`);
+                    const apiUrl = `${apiSources[currentApi]}?timestamp=${timestamp}`;
+                    
+                    const response = await fetch(apiUrl);
                     const blob = await response.blob();
                     
                     if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
@@ -271,6 +598,7 @@
                     img.src = currentImageUrl;
                 } catch (error) {
                     showToast('加载失败，请重试');
+                    console.error('Error fetching image:', error);
                 } finally {
                     loadingElement.style.display = 'none';
                     isFetching = false;
@@ -284,13 +612,39 @@
                 link.href = currentImageUrl;
                 link.download = `anime-${new Date().getTime()}.jpg`;
                 link.click();
+                showToast('图片下载成功！');
             });
             
             toggleUiBtn.addEventListener('click', toggleUI);
             
+            apiBtn.addEventListener('click', toggleApiModal);
+            
+            closeModal.addEventListener('click', toggleApiModal);
+            
+            // API选项点击事件
+            apiOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    apiOptions.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                    option.querySelector('input').checked = true;
+                });
+            });
+            
+            // 确认API选择
+            confirmApiBtn.addEventListener('click', () => {
+                const selectedOption = document.querySelector('.api-option.selected');
+                currentApi = selectedOption.dataset.api;
+                updateApiStatus();
+                toggleApiModal();
+                showToast(`已切换至${selectedApiName.textContent}`);
+            });
+            
             window.addEventListener('beforeunload', () => {
                 if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
             });
+            
+            // 初始化API状态
+            updateApiStatus();
         });
     </script>
 </body>
