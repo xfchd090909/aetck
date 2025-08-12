@@ -152,6 +152,107 @@
             transform: translateX(-50%) translateY(0);
         }
         
+        /* API Selector Button */
+        .api-selector {
+            background-color: #6366F1;
+            margin-top: 15px;
+        }
+        
+        .api-selector:hover {
+            background-color: #4f46e5;
+        }
+        
+        /* Modal Styles from index (6).html */
+        #apiModal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        #apiModal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        #apiModalOverlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        #apiModalContent {
+            position: relative;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+            transform: perspective(800px) rotateY(90deg);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.215, 0.610, 0.355, 1.000);
+        }
+        
+        #apiModal.show #apiModalContent {
+            transform: perspective(800px) rotateY(0deg);
+            opacity: 1;
+        }
+        
+        #closeApiModal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: #6b7280;
+            cursor: pointer;
+        }
+        
+        #closeApiModal:hover {
+            color: #4b5563;
+        }
+        
+        .api-option {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 0.5rem;
+            background-color: #f3f4f6;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .api-option:hover {
+            background-color: #e5e7eb;
+            transform: translateY(-2px);
+        }
+        
+        .api-option.selected {
+            background-color: #6366F1;
+            color: white;
+        }
+        
+        .api-option h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .api-option p {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+        
+        .api-warning {
+            color: #ef4444;
+            font-weight: 600;
+        }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -169,6 +270,11 @@
             button {
                 padding: 8px 16px;
                 font-size: 0.9rem;
+            }
+            
+            #apiModalContent {
+                width: 95%;
+                padding: 1rem;
             }
         }
     </style>
@@ -189,6 +295,12 @@
                     <span>下载图片</span>
                 </button>
             </div>
+            <div class="button-row">
+                <button id="api-selector-btn" class="api-selector">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>选择图片API</span>
+                </button>
+            </div>
         </div>
         <div class="loading" id="loading">
             <div class="spinner"></div>
@@ -199,6 +311,96 @@
 
     <div class="toast" id="toast">在图片获取完成之前不要连续点击</div>
 
+    <!-- API Selection Modal -->
+    <div id="apiModal">
+        <div id="apiModalOverlay"></div>
+        <div id="apiModalContent">
+            <button id="closeApiModal"><i class="fas fa-times"></i></button>
+            <h3 class="text-xl font-bold text-gray-800 mb-4">选择图片API源</h3>
+            <p class="text-sm text-gray-600 mb-4">当前API: <span id="currentApiName">默认API</span></p>
+            
+            <div class="api-option selected" data-api="https://www.loliapi.com/acg/" data-name="默认API">
+                <h3>默认API</h3>
+                <p>随机二次元图片 (自动适配设备)</p>
+            </div>
+            
+            <div class="api-option" data-api="https://t.alcy.cc/" data-name="Api 2（横屏）">
+                <h3>Api 2（横屏）</h3>
+                <p>横屏二次元图片</p>
+            </div>
+            
+            <div class="api-option" data-api="https://t.alcy.cc/mp" data-name="Api 3（竖屏）">
+                <h3>Api 3（竖屏）</h3>
+                <p>竖屏二次元图片</p>
+            </div>
+            
+            <div class="api-option" data-api="https://t.alcy.cc/fj" data-name="Api 4（横屏）">
+                <h3>Api 4（横屏）</h3>
+                <p>横屏二次元图片</p>
+            </div>
+            
+            <div class="api-option" data-api="http://www.98qy.com/sjbz/api.php" data-name="Api 5（横屏）">
+                <h3>Api 5（横屏）</h3>
+                <p>横屏二次元图片</p>
+            </div>
+            
+            <div class="api-option" data-api="https://api.mtyqx.cn/tapi/random.php" data-name="Api 6（横屏）">
+                <h3>Api 6（横屏）</h3>
+                <p>横屏二次元图片</p>
+            </div>
+            
+            <div class="api-option" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=azurlane" data-name="Api 7（敏感内容、横屏）">
+                <h3>Api 7（敏感内容、横屏）</h3>
+                <p class="api-warning">可能包含敏感内容 - 碧蓝航线</p>
+            </div>
+            
+            <div class="api-option" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=bluearchive" data-name="Api 8（敏感内容、碧蓝航线、横屏）">
+                <h3>Api 8（敏感内容、碧蓝航线、横屏）</h3>
+                <p class="api-warning">可能包含敏感内容 - 碧蓝航线</p>
+            </div>
+            
+            <div class="api-option" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=genshinimpact" data-name="Api 9（敏感内容、碧蓝档案、横屏）">
+                <h3>Api 9（敏感内容、碧蓝档案、横屏）</h3>
+                <p class="api-warning">可能包含敏感内容 - 碧蓝档案</p>
+            </div>
+            
+            <div class="api-option" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=arknights" data-name="Api 10（敏感内容、原神、横屏）">
+                <h3>Api 10（敏感内容、原神、横屏）</h3>
+                <p class="api-warning">可能包含敏感内容 - 原神</p>
+            </div>
+            
+            <div class="api-option" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=honkai" data-name="Api 11（敏感内容、明日方舟、横屏）">
+                <h3>Api 11（敏感内容、明日方舟、横屏）</h3>
+                <p class="api-warning">可能包含敏感内容 - 明日方舟</p>
+            </div>
+            
+            <div class="api-option" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=fate" data-name="Api 12（敏感内容、崩坏3、横屏）">
+                <h3>Api 12（敏感内容、崩坏3、横屏）</h3>
+                <p class="api-warning">可能包含敏感内容 - 崩坏3</p>
+            </div>
+            
+            <div class="api-option" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=frontline" data-name="Api 13（敏感内容、命运、横屏）">
+                <h3>Api 13（敏感内容、命运、横屏）</h3>
+                <p class="api-warning">可能包含敏感内容 - 命运</p>
+            </div>
+            
+            <div class="api-option" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=princess" data-name="Api 14（敏感内容、少女前线、横屏）">
+                <h3>Api 14（敏感内容、少女前线、横屏）</h3>
+                <p class="api-warning">可能包含敏感内容 - 少女前线</p>
+            </div>
+            
+            <div class="api-option" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=idolmaster" data-name="Api 15（敏感内容、公主连结、横屏）">
+                <h3>Api 15（敏感内容、公主连结、横屏）</h3>
+                <p class="api-warning">可能包含敏感内容 - 公主连结</p>
+            </div>
+            
+            <div class="api-option" data-api="https://image.anosu.top/pixiv/direct?r18=1&keyword=touhou" data-name="Api 16（敏感内容、皮套人、横屏）">
+                <h3>Api 16（敏感内容、皮套人、横屏）</h3>
+                <p class="api-warning">可能包含敏感内容 - 皮套人</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const randomBtn = document.getElementById('random-btn');
@@ -206,10 +408,19 @@
             const buttonContainer = document.getElementById('button-container');
             const loadingElement = document.getElementById('loading');
             const toastElement = document.getElementById('toast');
+            const apiSelectorBtn = document.getElementById('api-selector-btn');
+            const apiModal = document.getElementById('apiModal');
+            const apiModalOverlay = document.getElementById('apiModalOverlay');
+            const apiModalContent = document.getElementById('apiModalContent');
+            const closeApiModal = document.getElementById('closeApiModal');
+            const currentApiName = document.getElementById('currentApiName');
+            const apiOptions = document.querySelectorAll('.api-option');
+            
             let currentImageUrl = '';
             let currentImageBlob = null;
             let isFetching = false;
             let hasFirstImage = false;
+            let currentApi = 'https://www.loliapi.com/acg/';
             
             // 显示提示信息
             function showToast(message) {
@@ -235,6 +446,32 @@
                 }
             }
             
+            // 打开API选择模态框
+            function openApiModal() {
+                apiModal.classList.add('show');
+            }
+            
+            // 关闭API选择模态框
+            function closeApiModalFunc() {
+                apiModal.classList.remove('show');
+            }
+            
+            // 设置当前API
+            function setCurrentApi(apiUrl, apiName) {
+                currentApi = apiUrl;
+                currentApiName.textContent = apiName;
+                
+                // 更新选中状态
+                apiOptions.forEach(option => {
+                    option.classList.remove('selected');
+                    if (option.dataset.api === apiUrl) {
+                        option.classList.add('selected');
+                    }
+                });
+                
+                showToast(`已切换API: ${apiName}`);
+            }
+            
             randomBtn.addEventListener('click', async function() {
                 if (isFetching) {
                     showToast("在图片获取完成之前不要连续点击");
@@ -255,7 +492,7 @@
                 }
                 
                 // 添加时间戳防止缓存
-                const apiUrl = 'https://www.loliapi.com/acg/' + '?timestamp=' + new Date().getTime();
+                const apiUrl = currentApi + (currentApi.includes('?') ? '&' : '?') + 'timestamp=' + new Date().getTime();
                 
                 try {
                     // 获取图片并转换为Blob
@@ -311,6 +548,21 @@
                         document.body.removeChild(a);
                     }, 100);
                 }
+            });
+            
+            // API选择按钮事件
+            apiSelectorBtn.addEventListener('click', openApiModal);
+            closeApiModal.addEventListener('click', closeApiModalFunc);
+            apiModalOverlay.addEventListener('click', closeApiModalFunc);
+            
+            // API选项点击事件
+            apiOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const apiUrl = this.dataset.api;
+                    const apiName = this.dataset.name;
+                    setCurrentApi(apiUrl, apiName);
+                    closeApiModalFunc();
+                });
             });
             
             // 页面卸载时清理对象URL
