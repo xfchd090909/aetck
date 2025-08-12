@@ -29,17 +29,18 @@
         
         .container {
             background-color: rgba(255, 255, 255, 0.8);
-            padding: 2rem;
+            padding: 1rem;
             border-radius: 10px 10px 0 0;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            max-width: 100%;
             width: 100%;
             margin-top: auto; /* 这将容器推到底部 */
+            position: sticky;
+            bottom: 0;
         }
         
         h1 {
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
             transition: margin-bottom 0.3s ease;
         }
         
@@ -48,12 +49,11 @@
             flex-direction: column;
             align-items: center;
             gap: 0;
-            margin-top: 20px;
             transition: gap 0.3s ease;
         }
         
         .button-container.has-download {
-            gap: 15px;
+            gap: 10px;
         }
         
         .button-row {
@@ -64,21 +64,21 @@
         }
         
         button {
-            padding: 10px 20px;
+            padding: 8px 16px;
             border: none;
             border-radius: 5px;
             background-color: #ff6b81;
             color: white;
-            font-size: 1rem;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             width: 100%;
-            max-width: 300px;
+            max-width: 280px;
         }
         
         button:hover {
@@ -111,22 +111,22 @@
         
         .loading {
             display: none;
-            margin-top: 20px;
+            margin: 10px 0;
         }
         
         .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
+            border: 3px solid rgba(0, 0, 0, 0.1);
             border-radius: 50%;
-            border-top: 4px solid #ff6b81;
-            width: 30px;
-            height: 30px;
+            border-top: 3px solid #ff6b81;
+            width: 24px;
+            height: 24px;
             animation: spin 0.8s linear infinite;
             margin: 0 auto;
         }
         
         .api-credit {
-            margin-top: 20px;
-            font-size: 0.8rem;
+            margin-top: 10px;
+            font-size: 0.7rem;
             color: #666;
             transition: margin-top 0.3s ease;
         }
@@ -138,11 +138,12 @@
             transform: translateX(-50%) translateY(-30px);
             background-color: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 5px;
             opacity: 0;
             transition: opacity 0.3s ease, transform 0.3s ease;
             z-index: 1000;
+            font-size: 0.9rem;
         }
         
         .toast.show {
@@ -157,16 +158,22 @@
         
         @media (max-width: 600px) {
             .container {
-                padding: 1.5rem;
+                padding: 0.8rem;
             }
             
             h1 {
-                font-size: 1.2rem;
+                font-size: 1rem;
+                margin-bottom: 0.8rem;
             }
             
             button {
-                padding: 8px 16px;
-                font-size: 0.9rem;
+                padding: 6px 12px;
+                font-size: 0.8rem;
+                max-width: 240px;
+            }
+            
+            .api-credit {
+                font-size: 0.6rem;
             }
         }
     </style>
@@ -178,7 +185,7 @@
             <div class="button-row">
                 <button id="random-btn">
                     <i class="fas fa-random"></i>
-                    <span>随机二次元图片</span>
+                    <span>随机图片</span>
                 </button>
             </div>
             <div class="button-row">
@@ -190,9 +197,8 @@
         </div>
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>加载中...</p>
         </div>
-        <p class="api-credit">注意:如果你是移动设备只会生成适用于移动端的图片(PC亦是如此)，如需PC端图片请使用PC或者打开浏览器的电脑模式</p>
+        <p class="api-credit">注意:移动设备生成移动端图片，PC端生成PC端图片</p>
     </div>
 
     <div class="toast" id="toast">在图片获取完成之前不要连续点击</div>
@@ -209,7 +215,6 @@
             let isFetching = false;
             let hasFirstImage = false;
             
-            // 显示提示信息
             function showToast(message) {
                 toastElement.textContent = message;
                 toastElement.classList.add('show');
@@ -218,10 +223,8 @@
                 }, 2000);
             }
             
-            // 设置初始背景为空白
             document.body.style.backgroundImage = 'none';
             
-            // 将图片URL转换为Blob对象
             async function urlToBlob(url) {
                 try {
                     const response = await fetch(url);
@@ -239,42 +242,29 @@
                     return;
                 }
                 
-                // 设置获取状态
                 isFetching = true;
                 randomBtn.disabled = true;
-                
-                // 显示加载动画
                 loadingElement.style.display = 'block';
                 
-                // 如果是第一次获取，隐藏下载按钮
                 if (!hasFirstImage) {
                     downloadBtn.classList.remove('visible');
                     downloadBtn.disabled = true;
                 }
                 
-                // 添加时间戳防止缓存
                 const apiUrl = 'https://www.loliapi.com/acg/' + '?timestamp=' + new Date().getTime();
                 
                 try {
-                    // 获取图片并转换为Blob
                     currentImageBlob = await urlToBlob(apiUrl);
                     
                     if (currentImageBlob) {
-                        // 释放之前的对象URL
                         if (currentImageUrl) {
                             URL.revokeObjectURL(currentImageUrl);
                         }
                         
-                        // 创建对象URL用于显示和下载
                         currentImageUrl = URL.createObjectURL(currentImageBlob);
-                        
-                        // 图片加载完成后设置背景
                         document.body.style.backgroundImage = `url(${currentImageUrl})`;
-                        
-                        // 标记已有第一张图片
                         hasFirstImage = true;
                         
-                        // 显示并启用下载按钮
                         setTimeout(() => {
                             downloadBtn.classList.add('visible');
                             downloadBtn.disabled = false;
@@ -284,12 +274,9 @@
                         throw new Error('无法获取图片数据');
                     }
                 } catch (error) {
-                    // 加载失败处理
                     showToast('图片加载失败，请重试');
                 } finally {
-                    // 隐藏加载动画
                     loadingElement.style.display = 'none';
-                    // 重置获取状态
                     isFetching = false;
                     randomBtn.disabled = false;
                 }
@@ -297,21 +284,18 @@
             
             downloadBtn.addEventListener('click', function() {
                 if (currentImageUrl && currentImageBlob) {
-                    // 创建一个临时a标签触发下载
                     const a = document.createElement('a');
                     a.href = currentImageUrl;
                     a.download = 'random-anime-' + new Date().getTime() + '.jpg';
                     document.body.appendChild(a);
                     a.click();
                     
-                    // 清理
                     setTimeout(() => {
                         document.body.removeChild(a);
                     }, 100);
                 }
             });
             
-            // 页面卸载时清理对象URL
             window.addEventListener('beforeunload', function() {
                 if (currentImageUrl) {
                     URL.revokeObjectURL(currentImageUrl);
