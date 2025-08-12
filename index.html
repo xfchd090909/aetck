@@ -19,14 +19,33 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background-color: #f5f5f5;
             color: #333;
             text-align: center;
-            transition: background-image 0.5s ease;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 背景图片容器 */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        /* 背景图片样式 - 铺满整个屏幕 */
+        .background-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 保持比例并覆盖整个容器 */
+            transition: opacity 0.5s ease;
+            opacity: 0;
+        }
+        
+        .background-image.loaded {
+            opacity: 1;
         }
         
         .container {
@@ -37,6 +56,7 @@
             max-width: 90%;
             width: 500px;
             margin: 20px;
+            z-index: 1;
         }
         
         h1 {
@@ -284,6 +304,11 @@
     </style>
 </head>
 <body>
+    <!-- 背景图片容器 -->
+    <div class="background-container">
+        <img id="backgroundImage" class="background-image" alt="二次元背景图片" />
+    </div>
+
     <div class="container">
         <h1>点击下方按钮随机生成图片</h1>
         
@@ -359,6 +384,7 @@
             const closeModal = document.getElementById('closeModal');
             const confirmModal = document.getElementById('confirmModal');
             const modalOverlay = document.getElementById('modalOverlay');
+            const backgroundImage = document.getElementById('backgroundImage');
             
             let currentImageUrl = '';
             let currentImageBlob = null;
@@ -413,9 +439,6 @@
                 }, 2000);
             }
             
-            // 设置初始背景为空白
-            document.body.style.backgroundImage = 'none';
-            
             // 打开API信息弹窗
             function openApiModal(apiId) {
                 const api = apis.find(a => a.id === apiId);
@@ -448,11 +471,17 @@
                 });
                 
                 // 重置当前图片
+                resetCurrentImage();
+            }
+            
+            // 重置当前图片
+            function resetCurrentImage() {
                 if (currentImageUrl) {
                     URL.revokeObjectURL(currentImageUrl);
                     currentImageUrl = '';
                     currentImageBlob = null;
-                    document.body.style.backgroundImage = 'none';
+                    backgroundImage.src = '';
+                    backgroundImage.classList.remove('loaded');
                     downloadBtn.classList.remove('visible');
                     downloadBtn.disabled = true;
                     buttonContainer.classList.remove('has-download');
@@ -521,6 +550,9 @@
                 // 显示加载动画
                 loadingElement.style.display = 'block';
                 
+                // 隐藏当前图片，准备加载新图片
+                backgroundImage.classList.remove('loaded');
+                
                 // 如果是第一次获取，隐藏下载按钮
                 if (!hasFirstImage) {
                     downloadBtn.classList.remove('visible');
@@ -543,18 +575,24 @@
                         // 创建对象URL用于显示和下载
                         currentImageUrl = URL.createObjectURL(currentImageBlob);
                         
-                        // 图片加载完成后设置背景
-                        document.body.style.backgroundImage = `url(${currentImageUrl})`;
+                        // 设置图片源并等待加载完成
+                        backgroundImage.onload = function() {
+                            // 图片加载完成后显示
+                            backgroundImage.classList.add('loaded');
+                            
+                            // 标记已有第一张图片
+                            hasFirstImage = true;
+                            
+                            // 显示并启用下载按钮
+                            setTimeout(() => {
+                                downloadBtn.classList.add('visible');
+                                downloadBtn.disabled = false;
+                                buttonContainer.classList.add('has-download');
+                            }, 100);
+                        };
                         
-                        // 标记已有第一张图片
-                        hasFirstImage = true;
-                        
-                        // 显示并启用下载按钮
-                        setTimeout(() => {
-                            downloadBtn.classList.add('visible');
-                            downloadBtn.disabled = false;
-                            buttonContainer.classList.add('has-download');
-                        }, 100);
+                        // 设置图片源
+                        backgroundImage.src = currentImageUrl;
                     } else {
                         throw new Error('无法获取图片数据');
                     }
