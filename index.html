@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Æ-随机二次元图片</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * {
             margin: 0;
@@ -19,7 +20,6 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background-color: #f5f5f5;
             color: #333;
             text-align: center;
             transition: background-image 0.5s ease;
@@ -49,13 +49,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0;
+            gap: 15px;
             margin-top: 20px;
             transition: gap 0.3s ease;
-        }
-        
-        .button-container.has-download {
-            gap: 15px;
         }
         
         .button-row {
@@ -151,89 +147,33 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
-
-        /* API 选择按钮样式 */
+        
         .api-selector {
             display: flex;
+            justify-content: center;
             gap: 10px;
             margin-bottom: 15px;
             flex-wrap: wrap;
-            justify-content: center;
         }
-
-        .api-selector button {
-            background-color: #6366F1;
-            max-width: 150px;
-            font-size: 0.9rem;
+        
+        .api-btn {
             padding: 8px 12px;
-        }
-
-        .api-selector button:hover {
-            background-color: #4F46E5;
-        }
-
-        .api-selector button.active {
-            background-color: #EC4899;
-        }
-
-        /* 模态框样式 - 从index (6).html提取 */
-        #apiModal {
-            position: fixed;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        #apiModal.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        #apiModalOverlay {
-            position: absolute;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        #apiModalContent {
-            position: relative;
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            width: 100%;
-            max-width: 28rem;
-            margin: 0 1rem;
-            padding: 1.5rem;
-            transform: perspective(800px) rotateY(90deg);
-            opacity: 0;
-            transition: all 0.6s cubic-bezier(0.215, 0.610, 0.355, 1.000);
-        }
-
-        #apiModal.show #apiModalContent {
-            transform: perspective(800px) rotateY(0deg);
-            opacity: 1;
-        }
-
-        #closeApiModal {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            color: #6B7280;
+            background-color: #6366F1;
+            color: white;
+            border-radius: 5px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
         }
-
-        #closeApiModal:hover {
-            color: #374151;
+        
+        .api-btn:hover {
+            background-color: #4F46E5;
+            transform: translateY(-2px);
         }
-
-        .api-info {
-            margin-top: 1rem;
-            color: #4B5563;
+        
+        .api-btn.active {
+            background-color: #8B5CF6;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.5);
         }
         
         @keyframes spin {
@@ -254,16 +194,73 @@
                 padding: 8px 16px;
                 font-size: 0.9rem;
             }
-
-            .api-selector {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .api-selector button {
-                max-width: 100%;
-                width: 100%;
-            }
+        }
+        
+        /* Modal styles from index (6).html */
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            position: relative;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 28rem;
+            margin: 1rem;
+            padding: 1.5rem;
+            transform: perspective(800px) rotateY(90deg);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.215, 0.610, 0.355, 1.000);
+        }
+        
+        .modal.active .modal-content {
+            transform: perspective(800px) rotateY(0deg);
+            opacity: 1;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: #6B7280;
+            cursor: pointer;
+        }
+        
+        .modal-close:hover {
+            color: #4B5563;
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+        
+        .modal-body {
+            color: #4B5563;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -272,14 +269,11 @@
         <h1>点击下方按钮随机生成图片</h1>
         
         <div class="api-selector">
-            <button id="api1-btn" class="active">
-                <i class="fas fa-image"></i>
-                <span>默认API</span>
-            </button>
-            <button id="api2-btn">
-                <i class="fas fa-image"></i>
-                <span>API 2 (横屏)</span>
-            </button>
+            <div class="api-btn active" id="api1-btn" data-api="https://www.loliapi.com/acg/">默认API</div>
+            <div class="api-btn" id="api2-btn" data-api="https://t.alcy.cc/">API 2（横屏）</div>
+            <div class="api-btn" id="api-info-btn">
+                <i class="fas fa-info-circle"></i> API说明
+            </div>
         </div>
         
         <div class="button-container" id="button-container">
@@ -304,17 +298,19 @@
     </div>
 
     <div class="toast" id="toast">在图片获取完成之前不要连续点击</div>
-
-    <!-- API 信息模态框 -->
-    <div id="apiModal">
-        <div id="apiModalOverlay"></div>
-        <div id="apiModalContent">
-            <button id="closeApiModal">
+    
+    <!-- API Info Modal -->
+    <div class="modal" id="api-info-modal">
+        <div class="modal-overlay" id="modal-overlay"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">
                 <i class="fas fa-times"></i>
             </button>
-            <h3 id="apiModalTitle" class="text-xl font-bold text-gray-800 mb-4">API 信息</h3>
-            <div id="apiModalDescription" class="api-info">
-                <!-- 动态内容将在这里显示 -->
+            <h3 class="modal-title">API 使用说明</h3>
+            <div class="modal-body">
+                <p><strong>默认API</strong>: 通用二次元图片API，自动适配设备类型。</p>
+                <p><strong>API 2（横屏）</strong>: 专门提供横屏二次元图片，适合PC端使用。</p>
+                <p class="mt-3 text-sm text-gray-500">注意: 某些API可能会受到CORS限制，如果无法加载请尝试其他API。</p>
             </div>
         </div>
     </div>
@@ -328,34 +324,57 @@
             const toastElement = document.getElementById('toast');
             const api1Btn = document.getElementById('api1-btn');
             const api2Btn = document.getElementById('api2-btn');
-            const apiModal = document.getElementById('apiModal');
-            const apiModalOverlay = document.getElementById('apiModalOverlay');
-            const apiModalContent = document.getElementById('apiModalContent');
-            const closeApiModal = document.getElementById('closeApiModal');
-            const apiModalTitle = document.getElementById('apiModalTitle');
-            const apiModalDescription = document.getElementById('apiModalDescription');
+            const apiInfoBtn = document.getElementById('api-info-btn');
+            const apiInfoModal = document.getElementById('api-info-modal');
+            const modalOverlay = document.getElementById('modal-overlay');
+            const modalClose = document.getElementById('modal-close');
             
             let currentImageUrl = '';
             let currentImageBlob = null;
             let isFetching = false;
             let hasFirstImage = false;
-            let currentApi = 'default'; // 'default' 或 'api2'
+            let currentApi = 'https://www.loliapi.com/acg/';
             
-            // API 信息
-            const apiInfo = {
-                default: {
-                    name: "默认API",
-                    url: "https://www.loliapi.com/acg/",
-                    description: "这是默认的二次元图片API，提供随机的二次元图片。适用于各种设备，图片尺寸会根据设备自动调整。"
-                },
-                api2: {
-                    name: "API 2 (横屏)",
-                    url: "https://t.alcy.cc/pc",
-                    description: "这个API提供横屏的二次元图片，适合在电脑上使用。图片通常为宽屏比例，可能不适合移动设备。"
+            // Modal functions
+            function openModal() {
+                apiInfoModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeModal() {
+                apiInfoModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            
+            // API selection
+            function selectApi(apiBtn, apiUrl) {
+                document.querySelectorAll('.api-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                apiBtn.classList.add('active');
+                currentApi = apiUrl;
+            }
+            
+            api1Btn.addEventListener('click', () => {
+                selectApi(api1Btn, 'https://www.loliapi.com/acg/');
+            });
+            
+            api2Btn.addEventListener('click', () => {
+                selectApi(api2Btn, 'https://t.alcy.cc/');
+            });
+            
+            apiInfoBtn.addEventListener('click', openModal);
+            modalOverlay.addEventListener('click', closeModal);
+            modalClose.addEventListener('click', closeModal);
+            
+            // Close modal on ESC
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && apiInfoModal.classList.contains('active')) {
+                    closeModal();
                 }
-            };
+            });
             
-            // 显示提示信息
+            // Show toast message
             function showToast(message) {
                 toastElement.textContent = message;
                 toastElement.classList.add('show');
@@ -364,138 +383,115 @@
                 }, 2000);
             }
             
-            // 显示API信息模态框
-            function showApiModal(apiKey) {
-                const api = apiInfo[apiKey];
-                apiModalTitle.textContent = api.name;
-                apiModalDescription.innerHTML = `
-                    <p><strong>API地址:</strong> ${api.url}</p>
-                    <p>${api.description}</p>
-                `;
-                apiModal.classList.add('show');
-            }
-            
-            // 关闭API信息模态框
-            function closeApiModalFunc() {
-                apiModal.classList.remove('show');
-            }
-            
-            // 设置初始背景为空白
+            // Set initial background to none
             document.body.style.backgroundImage = 'none';
             
-            // 将图片URL转换为Blob对象
+            // Convert image URL to Blob object
             async function urlToBlob(url) {
                 try {
-                    const response = await fetch(url);
+                    // For API 2, we need to add headers to avoid CORS issues
+                    const options = {};
+                    if (url.includes('t.alcy.cc')) {
+                        options.headers = {
+                            'Origin': window.location.origin,
+                            'Referer': window.location.href
+                        };
+                    }
+                    
+                    const response = await fetch(url, options);
+                    if (!response.ok) throw new Error('Network response was not ok');
                     const blob = await response.blob();
                     return blob;
                 } catch (error) {
                     console.error('转换Blob失败:', error);
+                    showToast('图片加载失败: ' + (error.message || '未知错误'));
                     return null;
                 }
             }
             
-            // 获取随机图片
-            async function getRandomImage() {
+            randomBtn.addEventListener('click', async function() {
                 if (isFetching) {
                     showToast("在图片获取完成之前不要连续点击");
-                    return null;
+                    return;
                 }
                 
+                // Set fetching state
                 isFetching = true;
                 randomBtn.disabled = true;
+                
+                // Show loading animation
                 loadingElement.style.display = 'block';
                 
+                // If it's the first image, hide download button
                 if (!hasFirstImage) {
                     downloadBtn.classList.remove('visible');
                     downloadBtn.disabled = true;
                 }
                 
-                let apiUrl;
-                if (currentApi === 'default') {
-                    apiUrl = apiInfo.default.url + '?timestamp=' + new Date().getTime();
-                } else {
-                    apiUrl = apiInfo.api2.url + '?timestamp=' + new Date().getTime();
-                }
+                // Add timestamp to prevent caching
+                const apiUrl = currentApi + '?timestamp=' + new Date().getTime();
                 
                 try {
-                    const blob = await urlToBlob(apiUrl);
-                    if (blob) {
+                    // Get image and convert to Blob
+                    currentImageBlob = await urlToBlob(apiUrl);
+                    
+                    if (currentImageBlob) {
+                        // Release previous object URL
                         if (currentImageUrl) {
                             URL.revokeObjectURL(currentImageUrl);
                         }
-                        currentImageUrl = URL.createObjectURL(blob);
-                        currentImageBlob = blob;
                         
+                        // Create object URL for display and download
+                        currentImageUrl = URL.createObjectURL(currentImageBlob);
+                        
+                        // Set background after image loads
                         document.body.style.backgroundImage = `url(${currentImageUrl})`;
+                        
+                        // Mark that we have the first image
                         hasFirstImage = true;
                         
+                        // Show and enable download button
                         setTimeout(() => {
                             downloadBtn.classList.add('visible');
                             downloadBtn.disabled = false;
-                            buttonContainer.classList.add('has-download');
                         }, 100);
                     } else {
                         throw new Error('无法获取图片数据');
                     }
                 } catch (error) {
-                    showToast('图片加载失败，请重试');
-                    console.error('获取图片失败:', error);
-                    return null;
+                    // Handle loading failure
+                    showToast('图片加载失败，请重试或更换API');
                 } finally {
+                    // Hide loading animation
                     loadingElement.style.display = 'none';
+                    // Reset fetching state
                     isFetching = false;
                     randomBtn.disabled = false;
                 }
-                
-                return currentImageUrl;
-            }
-            
-            // 事件监听器
-            randomBtn.addEventListener('click', getRandomImage);
+            });
             
             downloadBtn.addEventListener('click', function() {
                 if (currentImageUrl && currentImageBlob) {
+                    // Create a temporary a tag to trigger download
                     const a = document.createElement('a');
                     a.href = currentImageUrl;
                     a.download = 'random-anime-' + new Date().getTime() + '.jpg';
                     document.body.appendChild(a);
                     a.click();
                     
+                    // Clean up
                     setTimeout(() => {
                         document.body.removeChild(a);
                     }, 100);
                 }
             });
             
-            // API 选择按钮事件
-            api1Btn.addEventListener('click', function() {
-                currentApi = 'default';
-                api1Btn.classList.add('active');
-                api2Btn.classList.remove('active');
-                showApiModal('default');
-            });
-            
-            api2Btn.addEventListener('click', function() {
-                currentApi = 'api2';
-                api2Btn.classList.add('active');
-                api1Btn.classList.remove('active');
-                showApiModal('api2');
-            });
-            
-            // 模态框关闭事件
-            closeApiModal.addEventListener('click', closeApiModalFunc);
-            apiModalOverlay.addEventListener('click', closeApiModalFunc);
-            
-            // 页面卸载时清理对象URL
+            // Clean up object URLs when page unloads
             window.addEventListener('beforeunload', function() {
                 if (currentImageUrl) {
                     URL.revokeObjectURL(currentImageUrl);
                 }
             });
-            
-            // 初始显示默认API信息
-            showApiModal('default');
         });
     </script>
 </body>
