@@ -492,8 +492,9 @@
                 }
                 
 
-                const proxyPath = '/github-pages/*';
-                const apiUrl = proxyPath + (currentApi.includes('?') ? '&' : '?') + 'timestamp=' + new Date().getTime();
+                const proxyPrefix = "/github-pages/*";
+                const apiPath = currentApi.replace("https://t.alcy.cc/pc/", ""); // 提取路径部分
+                const apiUrl = proxyPrefix + "/" + apiPath + (apiPath.includes('?') ? '&' : '?') + 'timestamp=' + new Date().getTime();
 
                 
                 try {
