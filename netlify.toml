@@ -6,7 +6,7 @@
 
 # 配置代理规则，合并所有请求方法
 [[redirects]]
-  from = "/github-pages/*"
+  from = "https://tangerine-starlight-c9c342.netlify.app/github-pages/*"
   to = "https://t.alcy.cc/pc/:splat"
   status = 200
   force = true
