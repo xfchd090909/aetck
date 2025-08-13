@@ -196,8 +196,6 @@
             'https://nekobot.xyz/api/image?type=neko',
             'https://www.loliapi.com/acg/'
         ];
-        // CORS代理，用于解决跨域问题
-        const corsProxy = 'https://corsproxy.io/?';
         let currentApiIndex = 0;
         let currentImageUrl = '';
         let imageHistory = [];
@@ -235,45 +233,33 @@
         // 从API获取图片URL
         async function getImageUrlFromApi(apiUrl) {
             try {
-                // 对于有CORS问题的API，使用代理
-                const urlToFetch = apiUrl.includes('nekosapi.com') 
-                    ? `${corsProxy}${encodeURIComponent(apiUrl)}` 
-                    : apiUrl;
-                
-                const response = await fetch(urlToFetch);
-                
-                // 检查响应状态
-                if (!response.ok) {
-                    throw new Error(`HTTP错误! 状态码: ${response.status}`);
-                }
-                
                 // 不同API有不同的响应格式，需要特殊处理
                 if (apiUrl === 'https://nekos.best/api/v2/neko') {
+                    const response = await fetch(apiUrl);
                     const data = await response.json();
                     return data.results[0].url;
                 } else if (apiUrl === 'https://api.waifu.im/search/?included_tags=waifu') {
+                    const response = await fetch(apiUrl);
                     const data = await response.json();
                     return data.images[0].url;
                 } else if (apiUrl === 'https://pic.re/image') {
                     // 这个API直接返回图片
                     return apiUrl;
                 } else if (apiUrl === 'https://api.nekosapi.com/v4/images/random') {
+                    const response = await fetch(apiUrl);
                     const data = await response.json();
-                    // 检查返回数据结构是否正确
-                    if (data && data.data && data.data.attributes && data.data.attributes.file) {
-                        return data.data.attributes.file;
-                    } else {
-                        throw new Error('nekosapi.com返回的数据格式不正确');
-                    }
+                    return data.data.attributes.file;
                 } else if (apiUrl === 'https://nekobot.xyz/api/image?type=neko') {
+                    const response = await fetch(apiUrl);
                     const data = await response.json();
                     return data.message;
                 } else if (apiUrl === 'https://www.loliapi.com/acg/') {
+                    const response = await fetch(apiUrl);
                     const data = await response.json();
                     return data.data.url;
                 }
             } catch (error) {
-                console.error(`API请求错误 (${apiUrl}):`, error);
+                console.error('API请求错误:', error);
                 throw error;
             }
         }
@@ -347,7 +333,7 @@
             } catch (error) {
                 clearTimeout(timeoutTimer);
                 hideLoader();
-                showToast(`图片加载失败: ${error.message}，尝试更换来源...`);
+                showToast('图片加载失败，尝试更换来源...');
                 
                 // 切换到下一个API
                 currentApiIndex = (currentApiIndex + 1) % apiList.length;
@@ -383,14 +369,8 @@
         function downloadImage() {
             if (!currentImageUrl) return;
             
-            // 对于使用代理的图片，直接使用原始URL下载
-            let downloadUrl = currentImageUrl;
-            if (downloadUrl.includes(corsProxy)) {
-                downloadUrl = decodeURIComponent(downloadUrl.replace(corsProxy, ''));
-            }
-            
             const link = document.createElement('a');
-            link.href = downloadUrl;
+            link.href = currentImageUrl;
             link.download = `anime-image-${new Date().getTime()}.jpg`;
             document.body.appendChild(link);
             link.click();
