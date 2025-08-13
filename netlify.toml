@@ -6,8 +6,8 @@
 
 # 配置代理规则，合并所有请求方法
 [[redirects]]
-  from = "https://tangerine-starlight-c9c342.netlify.app/github-pages/*"
-  to = "https://t.alcy.cc/pc/:splat"
+  from = "/github-pages/*"
+  to = "https://aetck.dpdns.org/:splat"
   status = 200
   force = true
   methods = ["GET", "POST", "OPTIONS"]  # 明确允许的方法
