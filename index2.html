@@ -365,16 +365,22 @@
             document.body.style.overflow = '';
         }
         
-        // 下载图片
+        // 下载图片 - 使用临时<a>标签实现
         function downloadImage() {
             if (!currentImageUrl) return;
             
-            const link = document.createElement('a');
-            link.href = currentImageUrl;
-            link.download = `anime-image-${new Date().getTime()}.jpg`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // 创建临时<a>标签
+            const downloadLink = document.createElement('a');
+            // 设置图片URL
+            downloadLink.href = currentImageUrl;
+            // 设置下载文件名（使用时间戳确保唯一性）
+            downloadLink.download = `anime-image-${new Date().getTime()}.jpg`;
+            // 将链接添加到页面
+            document.body.appendChild(downloadLink);
+            // 触发点击事件开始下载
+            downloadLink.click();
+            // 下载完成后移除临时链接
+            document.body.removeChild(downloadLink);
             
             showToast('图片下载中...');
         }
