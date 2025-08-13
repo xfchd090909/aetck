@@ -3,698 +3,520 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>二次元随机图片生成器</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    <title>二次元图片随机生成器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- 配置Tailwind自定义颜色 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6d28d9',
+                        secondary: '#4c1d95',
+                        accent: '#a855f7',
+                        dark: '#1e1b4b',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
         }
-        
-        body {
-            background: linear-gradient(135deg, #2c1a4d, #511e5e, #8a2a80);
-            color: #fff;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        #background-image {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -1;
-            transition: opacity 0.5s ease;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        header {
-            text-align: center;
-            padding: 20px 0;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 20px;
-            margin: 10px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            background: linear-gradient(to right, #ff7eee, #df73ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-        
-        .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.8;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2rem;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 30px 50px;
-            border-radius: 20px;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 5px solid #ff7eee;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .control-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            padding: 15px 0;
-            display: flex;
-            justify-content: center;
-            gap: 25px;
-            z-index: 100;
-            transition: transform 0.4s ease;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .control-bar.hidden {
-            transform: translateY(100%);
-        }
-        
-        .control-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .control-btn:hover {
-            background: rgba(255, 126, 238, 0.3);
-            transform: translateY(-5px);
-            box-shadow: 0 6px 20px rgba(255, 126, 238, 0.4);
-        }
-        
-        .toggle-ui {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(255, 126, 238, 0.3);
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            z-index: 101;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s ease;
-        }
-        
-        .modal.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-        
-        .modal-content {
-            background: linear-gradient(135deg, #2c1a4d, #511e5e);
-            width: 90%;
-            max-width: 600px;
-            border-radius: 20px;
-            overflow: hidden;
-            transform: translateY(50px);
-            opacity: 0;
-            transition: all 0.4s ease;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-        }
-        
-        .modal.active .modal-content {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        
-        .modal-header {
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-title {
-            font-size: 1.5rem;
-            color: #ff7eee;
-        }
-        
-        .close-modal {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-        
-        .close-modal:hover {
-            transform: rotate(90deg);
-            color: #ff7eee;
-        }
-        
-        .modal-body {
-            padding: 20px;
-        }
-        
-        .api-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .api-option {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 126, 238, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .api-option:hover {
-            background: rgba(255, 126, 238, 0.1);
-            transform: translateY(-3px);
-        }
-        
-        .api-option.selected {
-            background: rgba(255, 126, 238, 0.2);
-            border-color: #ff7eee;
-        }
-        
-        .api-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #ff7eee;
-        }
-        
-        .api-url {
-            font-size: 0.8rem;
-            opacity: 0.7;
-            word-break: break-all;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 15px 30px;
-            border-radius: 50px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        
-        .notification.show {
-            opacity: 1;
-        }
-        
-        .notification.error {
-            border-left: 4px solid #ff6b6b;
-        }
-        
-        .notification.warning {
-            border-left: 4px solid #ffd166;
-        }
-        
-        .notification.success {
-            border-left: 4px solid #06d6a0;
-        }
-        
-        .image-viewer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s ease;
-        }
-        
-        .image-viewer.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-        
-        .image-viewer img {
-            max-width: 90%;
-            max-height: 90%;
-            border-radius: 10px;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.7);
-        }
-        
-        .close-viewer {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .source-info {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            backdrop-filter: blur(5px);
-        }
-        
-        @media (max-width: 768px) {
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .bg-anime {
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+            }
+            .bg-gradient-anime {
+                background: linear-gradient(135deg, #2d1b69 0%, #1a0f33 100%);
+            }
             .control-btn {
-                width: 50px;
-                height: 50px;
-                font-size: 1.2rem;
+                @apply w-10 h-10 rounded-full flex items-center justify-center text-white bg-primary/80 hover:bg-accent transition-all duration-300 ease-in-out shadow-lg hover:shadow-accent/30 hover:scale-110 active:scale-95 backdrop-blur-sm;
             }
-            
-            .control-bar {
-                gap: 15px;
+            .modal-enter {
+                opacity: 0;
+                transform: translateY(20px);
             }
-            
-            h1 {
-                font-size: 2rem;
+            .modal-enter-active {
+                opacity: 1;
+                transform: translateY(0);
+                transition: opacity 300ms, transform 300ms;
+            }
+            .modal-exit {
+                opacity: 1;
+            }
+            .modal-exit-active {
+                opacity: 0;
+                transform: translateY(20px);
+                transition: opacity 300ms, transform 300ms;
+            }
+            .viewer-enter {
+                opacity: 0;
+            }
+            .viewer-enter-active {
+                opacity: 1;
+                transition: opacity 300ms;
+            }
+            .viewer-exit {
+                opacity: 1;
+            }
+            .viewer-exit-active {
+                opacity: 0;
+                transition: opacity 300ms;
             }
         }
     </style>
 </head>
-<body>
-    <img id="background-image" src="" alt="二次元背景">
-    
-    <div class="container">
-        <header>
-            <h1>二次元随机图片生成器</h1>
-            <p class="subtitle">每次刷新都会展示一张随机的二次元图片，支持多种API源，可自定义设置</p>
-        </header>
+<body class="bg-gradient-anime min-h-screen overflow-hidden relative">
+    <!-- 主图片背景 -->
+    <div id="image-container" class="fixed inset-0 z-0 transition-opacity duration-1000 ease-in-out">
+        <img id="main-image" class="w-full h-full object-cover opacity-80" alt="二次元图片">
     </div>
     
-    <div class="loading">
-        <div class="spinner"></div>
-        <p>正在获取二次元图片...</p>
+    <!-- 加载指示器 -->
+    <div id="loader" class="fixed inset-0 z-40 flex items-center justify-center bg-dark/70 backdrop-blur-sm hidden">
+        <div class="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
     </div>
     
-    <div class="control-bar">
-        <button class="control-btn" id="new-image" title="新图片">
-            <i class="fas fa-sync"></i>
-        </button>
-        <button class="control-btn" id="view-full" title="查看大图">
-            <i class="fas fa-expand"></i>
-        </button>
-        <button class="control-btn" id="download" title="下载图片">
-            <i class="fas fa-download"></i>
-        </button>
-        <button class="control-btn" id="api-select" title="选择API">
-            <i class="fas fa-database"></i>
-        </button>
-        <button class="control-btn" id="hide-ui" title="隐藏界面">
-            <i class="fas fa-eye-slash"></i>
-        </button>
+    <!-- 提示消息 -->
+    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-dark/90 text-white px-6 py-3 rounded-full backdrop-blur-md shadow-lg opacity-0 transition-opacity duration-500 flex items-center gap-2">
+        <i class="fa fa-info-circle text-accent"></i>
+        <span id="toast-message"></span>
     </div>
     
-    <button class="toggle-ui" id="show-ui" title="显示界面">
-        <i class="fas fa-eye"></i>
-    </button>
+    <!-- 图片查看器 -->
+    <div id="image-viewer" class="fixed inset-0 z-30 bg-black/90 backdrop-blur-sm hidden items-center justify-center p-4">
+        <button id="close-viewer" class="absolute top-4 right-4 text-white text-2xl hover:text-accent transition-colors">
+            <i class="fa fa-times"></i>
+        </button>
+        <img id="viewer-image" class="max-w-full max-h-[90vh] object-contain shadow-2xl" alt="完整二次元图片">
+    </div>
     
-    <div class="modal" id="api-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">选择图片API源</h3>
-                <button class="close-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p>选择不同的API源来获取二次元图片：</p>
-                <div class="api-options" id="api-options">
-                    <!-- API选项将通过JS动态生成 -->
-                </div>
-            </div>
+    <!-- API选择弹窗 -->
+    <div id="api-modal-backdrop" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    <div id="api-modal" class="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-dark/95 backdrop-blur-md rounded-xl shadow-2xl w-full max-w-md p-6 opacity-0 translate-y-8 pointer-events-none transition-all duration-300">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-white">选择图片来源</h3>
+            <button id="close-modal" class="text-gray-400 hover:text-white transition-colors">
+                <i class="fa fa-times"></i>
+            </button>
         </div>
-    </div>
-    
-    <div class="image-viewer" id="image-viewer">
-        <img id="full-image" src="" alt="完整图片">
-        <button class="close-viewer">
-            <i class="fas fa-times"></i>
+        
+        <div class="space-y-3 mb-6">
+            <label class="flex items-center p-3 rounded-lg bg-primary/10 hover:bg-primary/20 cursor-pointer transition-colors">
+                <input type="radio" name="api" value="https://nekos.best/api/v2/neko" class="mr-3 accent-accent" checked>
+                <span class="text-white">nekos.best</span>
+            </label>
+            <label class="flex items-center p-3 rounded-lg bg-primary/10 hover:bg-primary/20 cursor-pointer transition-colors">
+                <input type="radio" name="api" value="https://api.waifu.im/search/?included_tags=waifu" class="mr-3 accent-accent">
+                <span class="text-white">waifu.im</span>
+            </label>
+            <label class="flex items-center p-3 rounded-lg bg-primary/10 hover:bg-primary/20 cursor-pointer transition-colors">
+                <input type="radio" name="api" value="https://pic.re/image" class="mr-3 accent-accent">
+                <span class="text-white">pic.re</span>
+            </label>
+            <label class="flex items-center p-3 rounded-lg bg-primary/10 hover:bg-primary/20 cursor-pointer transition-colors">
+                <input type="radio" name="api" value="https://api.nekosapi.com/v4/images/random" class="mr-3 accent-accent">
+                <span class="text-white">nekosapi.com</span>
+            </label>
+            <label class="flex items-center p-3 rounded-lg bg-primary/10 hover:bg-primary/20 cursor-pointer transition-colors">
+                <input type="radio" name="api" value="https://nekobot.xyz/api/image?type=neko" class="mr-3 accent-accent">
+                <span class="text-white">nekobot.xyz</span>
+            </label>
+            <label class="flex items-center p-3 rounded-lg bg-primary/10 hover:bg-primary/20 cursor-pointer transition-colors">
+                <input type="radio" name="api" value="https://www.loliapi.com/acg/" class="mr-3 accent-accent">
+                <span class="text-white">loliapi.com</span>
+            </label>
+        </div>
+        
+        <button id="confirm-api" class="w-full py-3 bg-accent hover:bg-accent/80 text-white rounded-lg font-medium transition-colors">
+            确认选择
         </button>
-        <div class="source-info" id="source-info"></div>
     </div>
     
-    <div class="notification" id="notification">
-        <i class="fas fa-info-circle"></i>
-        <span id="notification-text"></span>
-    </div>
-    
-    <script>
-        // 可用API列表
-        const apiList = [
-            {
-                id: 'nekos-best',
-                name: 'Nekos Best',
-                url: 'https://nekos.best/api/v2/neko',
-                parser: data => data.results[0].url
-            },
-            {
-                id: 'waifu-im',
-                name: 'Waifu.im',
-                url: 'https://api.waifu.im/search/?included_tags=waifu',
-                parser: data => data.images[0].url
-            },
-            {
-                id: 'pic-re',
-                name: 'Pic.re',
-                url: 'https://pic.re/image',
-                parser: data => data.url
-            },
-            {
-                id: 'nekosapi',
-                name: 'Nekos API',
-                url: 'https://api.nekosapi.com/v4/images/random',
-                parser: data => data.data.attributes.file
-            },
-            {
-                id: 'nekobot',
-                name: 'Nekobot.xyz',
-                url: 'https://nekobot.xyz/api/image?type=neko',
-                parser: data => data.message
-            },
-            {
-                id: 'loliapi',
-                name: 'Loli API',
-                url: 'https://www.loliapi.com/acg/',
-                parser: data => data
-            }
-        ];
+    <!-- 控制区 - 页脚 -->
+    <footer id="controls" class="fixed bottom-6 left-0 right-0 z-20 flex justify-center items-center gap-4 transition-all duration-500 ease-in-out">
+        <button id="prev-btn" class="control-btn" title="上一张">
+            <i class="fa fa-arrow-left"></i>
+        </button>
+        <button id="next-btn" class="control-btn" title="下一张">
+            <i class="fa fa-arrow-right"></i>
+        </button>
+        <button id="view-btn" class="control-btn" title="查看完整图片">
+            <i class="fa fa-search-plus"></i>
+        </button>
+        <button id="download-btn" class="control-btn" title="下载图片">
+            <i class="fa fa-download"></i>
+        </button>
+        <button id="api-btn" class="control-btn" title="选择图片来源">
+            <i class="fa fa-cog"></i>
+        </button>
+        <button id="hide-ui-btn" class="control-btn" title="隐藏/显示界面">
+            <i class="fa fa-eye"></i>
+        </button>
+    </footer>
 
-        // 当前API索引
+    <script>
+        // DOM元素
+        const imageContainer = document.getElementById('image-container');
+        const mainImage = document.getElementById('main-image');
+        const viewer = document.getElementById('image-viewer');
+        const viewerImage = document.getElementById('viewer-image');
+        const closeViewer = document.getElementById('close-viewer');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const viewBtn = document.getElementById('view-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const apiBtn = document.getElementById('api-btn');
+        const hideUiBtn = document.getElementById('hide-ui-btn');
+        const controls = document.getElementById('controls');
+        const apiModal = document.getElementById('api-modal');
+        const apiModalBackdrop = document.getElementById('api-modal-backdrop');
+        const closeModal = document.getElementById('close-modal');
+        const confirmApi = document.getElementById('confirm-api');
+        const loader = document.getElementById('loader');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        
+        // API列表和状态
+        const apiList = [
+            'https://nekos.best/api/v2/neko',
+            'https://api.waifu.im/search/?included_tags=waifu',
+            'https://pic.re/image',
+            'https://api.nekosapi.com/v4/images/random',
+            'https://nekobot.xyz/api/image?type=neko',
+            'https://www.loliapi.com/acg/'
+        ];
         let currentApiIndex = 0;
         let currentImageUrl = '';
-        let currentApiName = '';
-        let timeoutId = null;
+        let imageHistory = [];
+        let historyIndex = -1;
+        let isLoading = false;
+        let timeoutTimer = null;
+        let isUiHidden = false;
         
-        // DOM元素
-        const backgroundImage = document.getElementById('background-image');
-        const loadingElement = document.querySelector('.loading');
-        const controlBar = document.querySelector('.control-bar');
-        const toggleUiBtn = document.getElementById('show-ui');
-        const newImageBtn = document.getElementById('new-image');
-        const viewFullBtn = document.getElementById('view-full');
-        const downloadBtn = document.getElementById('download');
-        const apiSelectBtn = document.getElementById('api-select');
-        const hideUiBtn = document.getElementById('hide-ui');
-        const apiModal = document.getElementById('api-modal');
-        const apiOptionsContainer = document.getElementById('api-options');
-        const closeModalBtn = document.querySelector('.close-modal');
-        const imageViewer = document.getElementById('image-viewer');
-        const fullImage = document.getElementById('full-image');
-        const closeViewerBtn = document.querySelector('.close-viewer');
-        const notification = document.getElementById('notification');
-        const notificationText = document.getElementById('notification-text');
-        const sourceInfo = document.getElementById('source-info');
-        
-        // 初始化
-        document.addEventListener('DOMContentLoaded', () => {
-            // 生成API选项
-            generateApiOptions();
+        // 显示提示消息
+        function showToast(message, duration = 3000) {
+            toastMessage.textContent = message;
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
             
-            // 获取第一张图片
-            fetchRandomImage();
-            
-            // 事件监听器
-            setupEventListeners();
-        });
-        
-        // 生成API选项
-        function generateApiOptions() {
-            apiOptionsContainer.innerHTML = '';
-            apiList.forEach((api, index) => {
-                const option = document.createElement('div');
-                option.className = `api-option ${index === currentApiIndex ? 'selected' : ''}`;
-                option.dataset.index = index;
-                option.innerHTML = `
-                    <div class="api-name">${api.name}</div>
-                    <div class="api-url">${api.url}</div>
-                `;
-                apiOptionsContainer.appendChild(option);
-                
-                option.addEventListener('click', () => {
-                    // 移除之前的选择
-                    document.querySelectorAll('.api-option').forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-                    
-                    // 选择当前API
-                    option.classList.add('selected');
-                    currentApiIndex = index;
-                    
-                    // 关闭模态框并获取新图片
-                    setTimeout(() => {
-                        apiModal.classList.remove('active');
-                        fetchRandomImage();
-                    }, 300);
-                });
-            });
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+            }, duration);
         }
         
-        // 设置事件监听器
-        function setupEventListeners() {
-            // 新图片按钮
-            newImageBtn.addEventListener('click', fetchRandomImage);
-            
-            // 查看大图按钮
-            viewFullBtn.addEventListener('click', () => {
-                if (currentImageUrl) {
-                    fullImage.src = currentImageUrl;
-                    sourceInfo.textContent = `来源: ${currentApiName}`;
-                    imageViewer.classList.add('active');
-                }
-            });
-            
-            // 下载按钮
-            downloadBtn.addEventListener('click', () => {
-                if (currentImageUrl) {
-                    const a = document.createElement('a');
-                    a.href = currentImageUrl;
-                    a.download = `anime-image-${Date.now()}.jpg`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    
-                    showNotification('图片下载开始，请检查下载文件夹', 'success');
-                } else {
-                    showNotification('没有可下载的图片', 'error');
-                }
-            });
-            
-            // API选择按钮
-            apiSelectBtn.addEventListener('click', () => {
-                apiModal.classList.add('active');
-            });
-            
-            // 隐藏UI按钮
-            hideUiBtn.addEventListener('click', () => {
-                controlBar.classList.add('hidden');
-                toggleUiBtn.style.display = 'flex';
-            });
-            
-            // 显示UI按钮
-            toggleUiBtn.addEventListener('click', () => {
-                controlBar.classList.remove('hidden');
-                toggleUiBtn.style.display = 'none';
-            });
-            
-            // 关闭模态框
-            closeModalBtn.addEventListener('click', () => {
-                apiModal.classList.remove('active');
-            });
-            
-            // 关闭图片查看器
-            closeViewerBtn.addEventListener('click', () => {
-                imageViewer.classList.remove('active');
-            });
-            
-            // 点击模态框外部关闭
-            apiModal.addEventListener('click', (e) => {
-                if (e.target === apiModal) {
-                    apiModal.classList.remove('active');
-                }
-            });
+        // 显示加载指示器
+        function showLoader() {
+            loader.classList.remove('hidden');
+            loader.classList.add('flex');
+            isLoading = true;
         }
         
-        // 获取随机图片
-        function fetchRandomImage() {
-            // 显示加载状态
-            loadingElement.style.display = 'flex';
+        // 隐藏加载指示器
+        function hideLoader() {
+            loader.classList.remove('flex');
+            loader.classList.add('hidden');
+            isLoading = false;
+        }
+        
+        // 从API获取图片URL
+        async function getImageUrlFromApi(apiUrl) {
+            try {
+                // 不同API有不同的响应格式，需要特殊处理
+                if (apiUrl === 'https://nekos.best/api/v2/neko') {
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    return data.results[0].url;
+                } else if (apiUrl === 'https://api.waifu.im/search/?included_tags=waifu') {
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    return data.images[0].url;
+                } else if (apiUrl === 'https://pic.re/image') {
+                    // 这个API直接返回图片
+                    return apiUrl;
+                } else if (apiUrl === 'https://api.nekosapi.com/v4/images/random') {
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    return data.data.attributes.file;
+                } else if (apiUrl === 'https://nekobot.xyz/api/image?type=neko') {
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    return data.message;
+                } else if (apiUrl === 'https://www.loliapi.com/acg/') {
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    return data.data.url;
+                }
+            } catch (error) {
+                console.error('API请求错误:', error);
+                throw error;
+            }
+        }
+        
+        // 加载图片
+        async function loadImage(apiUrl = null) {
+            if (isLoading) return;
             
-            // 清除之前的超时定时器
-            if (timeoutId) {
-                clearTimeout(timeoutId);
+            showLoader();
+            const urlToUse = apiUrl || apiList[currentApiIndex];
+            let imageUrl;
+            
+            // 清除之前的超时计时器
+            if (timeoutTimer) {
+                clearTimeout(timeoutTimer);
             }
             
-            // 设置15秒超时
-            timeoutId = setTimeout(() => {
-                showNotification('获取图片超时，已为你更换API以继续获取', 'warning');
-                currentApiIndex = (currentApiIndex + 1) % apiList.length;
-                fetchRandomImage();
-            }, 15000);
-            
-            // 获取当前API配置
-            const api = apiList[currentApiIndex];
-            currentApiName = api.name;
-            
-            // 发起请求
-            fetch(api.url)
-                .then(response => {
-                    if (api.id === 'loliapi') {
-                        return response.text();
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // 清除超时定时器
-                    clearTimeout(timeoutId);
-                    
-                    // 解析图片URL
-                    const imageUrl = api.parser(data);
-                    
-                    // 设置背景图片
-                    backgroundImage.src = imageUrl;
-                    currentImageUrl = imageUrl;
-                    
-                    // 图片加载完成后隐藏加载状态
-                    backgroundImage.onload = () => {
-                        setTimeout(() => {
-                            loadingElement.style.display = 'none';
-                        }, 500);
-                    };
-                    
-                    // 错误处理
-                    backgroundImage.onerror = () => {
-                        loadingElement.style.display = 'none';
-                        showNotification('图片加载失败，正在尝试其他API', 'error');
-                        currentApiIndex = (currentApiIndex + 1) % apiList.length;
-                        setTimeout(fetchRandomImage, 1000);
-                    };
-                })
-                .catch(error => {
-                    // 清除超时定时器
-                    clearTimeout(timeoutId);
-                    
-                    loadingElement.style.display = 'none';
-                    console.error('获取图片失败:', error);
-                    showNotification('获取图片失败，正在尝试其他API', 'error');
+            try {
+                // 设置超时计时器
+                timeoutTimer = setTimeout(async () => {
+                    hideLoader();
+                    showToast('获取图片超时，已为你更换Api以继续获取');
                     
                     // 切换到下一个API
                     currentApiIndex = (currentApiIndex + 1) % apiList.length;
-                    setTimeout(fetchRandomImage, 1000);
-                });
+                    document.querySelector(`input[value="${apiList[currentApiIndex]}"]`).checked = true;
+                    
+                    // 重新加载图片
+                    await loadImage();
+                }, 15000);
+                
+                // 获取图片URL
+                imageUrl = await getImageUrlFromApi(urlToUse);
+                
+                // 清除超时计时器
+                clearTimeout(timeoutTimer);
+                
+                // 加载图片到DOM
+                const img = new Image();
+                img.src = imageUrl;
+                
+                img.onload = () => {
+                    // 淡出当前图片
+                    imageContainer.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        // 更新图片
+                        mainImage.src = imageUrl;
+                        mainImage.alt = '二次元图片';
+                        currentImageUrl = imageUrl;
+                        
+                        // 淡入新图片
+                        imageContainer.style.opacity = '1';
+                        hideLoader();
+                        
+                        // 更新历史记录
+                        if (historyIndex < imageHistory.length - 1) {
+                            imageHistory = imageHistory.slice(0, historyIndex + 1);
+                        }
+                        imageHistory.push(imageUrl);
+                        historyIndex = imageHistory.length - 1;
+                    }, 500);
+                };
+                
+                img.onerror = () => {
+                    clearTimeout(timeoutTimer);
+                    hideLoader();
+                    throw new Error('图片加载失败');
+                };
+                
+            } catch (error) {
+                clearTimeout(timeoutTimer);
+                hideLoader();
+                showToast('图片加载失败，尝试更换来源...');
+                
+                // 切换到下一个API
+                currentApiIndex = (currentApiIndex + 1) % apiList.length;
+                document.querySelector(`input[value="${apiList[currentApiIndex]}"]`).checked = true;
+                
+                // 重试
+                setTimeout(loadImage, 1000);
+            }
         }
         
-        // 显示通知
-        function showNotification(message, type = 'info') {
-            notificationText.textContent = message;
-            notification.className = `notification ${type} show`;
+        // 查看完整图片
+        function viewFullImage() {
+            if (!currentImageUrl) return;
             
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+            viewerImage.src = currentImageUrl;
+            viewer.classList.remove('hidden');
+            viewer.classList.add('flex');
+            
+            // 阻止背景滚动
+            document.body.style.overflow = 'hidden';
         }
+        
+        // 关闭图片查看器
+        function closeFullImage() {
+            viewer.classList.remove('flex');
+            viewer.classList.add('hidden');
+            
+            // 恢复背景滚动
+            document.body.style.overflow = '';
+        }
+        
+        // 下载图片
+        function downloadImage() {
+            if (!currentImageUrl) return;
+            
+            const link = document.createElement('a');
+            link.href = currentImageUrl;
+            link.download = `anime-image-${new Date().getTime()}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast('图片下载中...');
+        }
+        
+        // 显示API选择弹窗
+        function showApiModal() {
+            apiModalBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+            apiModalBackdrop.classList.add('opacity-100', 'pointer-events-auto');
+            
+            apiModal.classList.remove('opacity-0', 'translate-y-8', 'pointer-events-none');
+            apiModal.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+        }
+        
+        // 隐藏API选择弹窗
+        function hideApiModal() {
+            apiModalBackdrop.classList.remove('opacity-100', 'pointer-events-auto');
+            apiModalBackdrop.classList.add('opacity-0', 'pointer-events-none');
+            
+            apiModal.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+            apiModal.classList.add('opacity-0', 'translate-y-8', 'pointer-events-none');
+        }
+        
+        // 确认选择API
+        function confirmApiSelection() {
+            const selectedApi = document.querySelector('input[name="api"]:checked').value;
+            currentApiIndex = apiList.indexOf(selectedApi);
+            hideApiModal();
+            loadImage(selectedApi);
+            showToast('已切换图片来源');
+        }
+        
+        // 上一张图片
+        function prevImage() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                currentImageUrl = imageHistory[historyIndex];
+                
+                // 淡出当前图片
+                imageContainer.style.opacity = '0';
+                
+                setTimeout(() => {
+                    // 更新图片
+                    mainImage.src = currentImageUrl;
+                    
+                    // 淡入新图片
+                    imageContainer.style.opacity = '1';
+                }, 500);
+            } else {
+                showToast('已经是第一张图片了');
+            }
+        }
+        
+        // 下一张图片
+        function nextImage() {
+            if (historyIndex < imageHistory.length - 1) {
+                historyIndex++;
+                currentImageUrl = imageHistory[historyIndex];
+                
+                // 淡出当前图片
+                imageContainer.style.opacity = '0';
+                
+                setTimeout(() => {
+                    // 更新图片
+                    mainImage.src = currentImageUrl;
+                    
+                    // 淡入新图片
+                    imageContainer.style.opacity = '1';
+                }, 500);
+            } else {
+                loadImage();
+            }
+        }
+        
+        // 隐藏/显示UI
+        function toggleUi() {
+            isUiHidden = !isUiHidden;
+            
+            if (isUiHidden) {
+                controls.style.transform = 'translateY(200px)';
+                controls.style.opacity = '0';
+                hideUiBtn.innerHTML = '<i class="fa fa-eye-slash"></i>';
+                showToast('UI已隐藏，点击任意位置显示');
+                
+                // 添加临时点击事件显示UI
+                const showUiOnClick = () => {
+                    toggleUi();
+                    document.removeEventListener('click', showUiOnClick);
+                };
+                
+                setTimeout(() => {
+                    document.addEventListener('click', showUiOnClick);
+                }, 500);
+            } else {
+                controls.style.transform = 'translateY(0)';
+                controls.style.opacity = '1';
+                hideUiBtn.innerHTML = '<i class="fa fa-eye"></i>';
+            }
+        }
+        
+        // 事件监听
+        nextBtn.addEventListener('click', nextImage);
+        prevBtn.addEventListener('click', prevImage);
+        viewBtn.addEventListener('click', viewFullImage);
+        closeViewer.addEventListener('click', closeFullImage);
+        downloadBtn.addEventListener('click', downloadImage);
+        apiBtn.addEventListener('click', showApiModal);
+        closeModal.addEventListener('click', hideApiModal);
+        confirmApi.addEventListener('click', confirmApiSelection);
+        hideUiBtn.addEventListener('click', toggleUi);
+        
+        // 点击查看器背景关闭查看器
+        viewer.addEventListener('click', (e) => {
+            if (e.target === viewer) {
+                closeFullImage();
+            }
+        });
+        
+        // 点击弹窗背景关闭弹窗
+        apiModalBackdrop.addEventListener('click', (e) => {
+            if (e.target === apiModalBackdrop) {
+                hideApiModal();
+            }
+        });
+        
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                nextImage();
+            } else if (e.key === 'ArrowLeft') {
+                prevImage();
+            } else if (e.key === 'd' || e.key === 'D') {
+                downloadImage();
+            } else if (e.key === 'v' || e.key === 'V') {
+                viewFullImage();
+            } else if (e.key === 'Escape') {
+                closeFullImage();
+                hideApiModal();
+            }
+        });
+        
+        // 初始化加载图片
+        loadImage();
     </script>
 </body>
 </html>
