@@ -78,7 +78,7 @@
             transform: none !important;
         }
         
-        .download-btn {
+        .download-btn, .fullscreen-btn {
             opacity: 0;
             transform: translateX(-100%);
             height: 0;
@@ -93,12 +93,16 @@
                 margin 0.4s ease;
         }
         
-        .download-btn.visible {
+        .download-btn.visible, .fullscreen-btn.visible {
             opacity: 1;
             transform: translateX(0);
             height: auto;
             padding: 6px 12px;
             margin: 0;
+        }
+        
+        .fullscreen-btn {
+            background-color: #1e90ff;
         }
         
         .loading {
@@ -176,6 +180,73 @@
             transform: rotate(180deg);
         }
         
+        .api-selector {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .api-selector.visible {
+            display: flex;
+        }
+        
+        .api-option {
+            display: flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .api-option:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .api-option input {
+            margin-right: 8px;
+        }
+        
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .fullscreen-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .fullscreen-image {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        
+        .close-fullscreen {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -189,9 +260,43 @@
                 <i class="fas fa-random"></i>
                 <span>随机图片</span>
             </button>
+            <button id="toggle-api-btn">
+                <i class="fas fa-cog"></i>
+                <span>选择API</span>
+            </button>
+            <div class="api-selector" id="api-selector">
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-default" value="https://www.loliapi.com/acg/" checked>
+                    <label for="api-default">默认API (loliapi.com)</label>
+                </div>
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-neko" value="https://nekos.best/api/v2/neko">
+                    <label for="api-neko">Nekos.best</label>
+                </div>
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-waifu" value="https://api.waifu.im/search/?included_tags=waifu">
+                    <label for="api-waifu">Waifu.im</label>
+                </div>
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-picre" value="https://pic.re/image">
+                    <label for="api-picre">Pic.re</label>
+                </div>
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-nekosapi" value="https://api.nekosapi.com/v4/images/random">
+                    <label for="api-nekosapi">NekosAPI</label>
+                </div>
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-nekobot" value="https://nekobot.xyz/api/image?type=neko">
+                    <label for="api-nekobot">NekoBot</label>
+                </div>
+            </div>
             <button id="download-btn" class="download-btn" disabled>
                 <i class="fas fa-download"></i>
                 <span>下载</span>
+            </button>
+            <button id="fullscreen-btn" class="fullscreen-btn" disabled>
+                <i class="fas fa-expand"></i>
+                <span>查看全图</span>
             </button>
             <div class="loading" id="loading">
                 <div class="spinner"></div>
@@ -206,17 +311,30 @@
 
     <div class="toast" id="toast">请等待图片加载完成</div>
 
+    <div class="fullscreen-overlay" id="fullscreen-overlay">
+        <i class="fas fa-times close-fullscreen" id="close-fullscreen"></i>
+        <img class="fullscreen-image" id="fullscreen-image" src="" alt="全屏图片">
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const randomBtn = document.getElementById('random-btn');
             const downloadBtn = document.getElementById('download-btn');
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
             const loadingElement = document.getElementById('loading');
             const toastElement = document.getElementById('toast');
             const controlPanel = document.querySelector('.control-panel');
             const toggleUiBtn = document.getElementById('toggle-ui-btn');
+            const toggleApiBtn = document.getElementById('toggle-api-btn');
+            const apiSelector = document.getElementById('api-selector');
+            const fullscreenOverlay = document.getElementById('fullscreen-overlay');
+            const fullscreenImage = document.getElementById('fullscreen-image');
+            const closeFullscreen = document.getElementById('close-fullscreen');
+            
             let currentImageUrl = '';
             let isFetching = false;
             let uiVisible = true;
+            let selectedApi = 'https://www.loliapi.com/acg/';
             
             function showToast(message) {
                 toastElement.textContent = message;
@@ -235,6 +353,27 @@
                 }
             }
             
+            function toggleApiSelector() {
+                apiSelector.classList.toggle('visible');
+            }
+            
+            function selectApi(event) {
+                if (event.target.tagName === 'INPUT') {
+                    selectedApi = event.target.value;
+                    showToast(`已选择: ${event.target.nextElementSibling.textContent}`);
+                }
+            }
+            
+            function showFullscreenImage() {
+                if (!currentImageUrl) return;
+                fullscreenImage.src = currentImageUrl;
+                fullscreenOverlay.classList.add('active');
+            }
+            
+            function hideFullscreenImage() {
+                fullscreenOverlay.classList.remove('active');
+            }
+            
             document.body.style.backgroundImage = 'none';
             
             randomBtn.addEventListener('click', async function() {
@@ -247,17 +386,60 @@
                 randomBtn.disabled = true;
                 loadingElement.style.display = 'block';
                 
-                // 重置下载按钮状态
+                // 重置按钮状态
                 downloadBtn.classList.remove('visible');
+                fullscreenBtn.classList.remove('visible');
                 downloadBtn.disabled = true;
+                fullscreenBtn.disabled = true;
                 
                 try {
                     const timestamp = new Date().getTime();
-                    const response = await fetch(`https://www.loliapi.com/acg/?timestamp=${timestamp}`);
-                    const blob = await response.blob();
+                    let apiUrl = selectedApi;
                     
-                    if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
-                    currentImageUrl = URL.createObjectURL(blob);
+                    // 处理不同API的响应
+                    if (apiUrl.includes('loliapi.com')) {
+                        apiUrl += `?timestamp=${timestamp}`;
+                    } else if (apiUrl.includes('nekos.best')) {
+                        apiUrl = 'https://nekos.best/api/v2/neko';
+                    } else if (apiUrl.includes('waifu.im')) {
+                        apiUrl = 'https://api.waifu.im/search/?included_tags=waifu';
+                    } else if (apiUrl.includes('pic.re')) {
+                        apiUrl = 'https://pic.re/image';
+                    } else if (apiUrl.includes('nekosapi.com')) {
+                        apiUrl = 'https://api.nekosapi.com/v4/images/random';
+                    } else if (apiUrl.includes('nekobot.xyz')) {
+                        apiUrl = 'https://nekobot.xyz/api/image?type=neko';
+                    }
+                    
+                    const response = await fetch(apiUrl);
+                    let imageUrl;
+                    
+                    // 解析不同API的响应格式
+                    if (apiUrl.includes('nekos.best')) {
+                        const data = await response.json();
+                        imageUrl = data.results[0].url;
+                    } else if (apiUrl.includes('waifu.im')) {
+                        const data = await response.json();
+                        imageUrl = data.images[0].url;
+                    } else if (apiUrl.includes('nekosapi.com')) {
+                        const data = await response.json();
+                        imageUrl = data.data.attributes.file;
+                    } else if (apiUrl.includes('nekobot.xyz')) {
+                        const data = await response.json();
+                        imageUrl = data.message;
+                    } else {
+                        // 默认处理直接返回图片的API
+                        const blob = await response.blob();
+                        if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
+                        currentImageUrl = URL.createObjectURL(blob);
+                        imageUrl = currentImageUrl;
+                    }
+                    
+                    // 如果API返回的是JSON格式的URL
+                    if (!imageUrl.startsWith('blob:')) {
+                        if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
+                        currentImageUrl = imageUrl;
+                    }
                     
                     const img = new Image();
                     img.onload = () => {
@@ -265,11 +447,17 @@
                         // 添加延迟让加载动画更自然
                         setTimeout(() => {
                             downloadBtn.disabled = false;
+                            fullscreenBtn.disabled = false;
                             downloadBtn.classList.add('visible');
+                            fullscreenBtn.classList.add('visible');
                         }, 200);
+                    };
+                    img.onerror = () => {
+                        throw new Error('图片加载失败');
                     };
                     img.src = currentImageUrl;
                 } catch (error) {
+                    console.error('加载失败:', error);
                     showToast('加载失败，请重试');
                 } finally {
                     loadingElement.style.display = 'none';
@@ -286,10 +474,22 @@
                 link.click();
             });
             
+            fullscreenBtn.addEventListener('click', showFullscreenImage);
+            closeFullscreen.addEventListener('click', hideFullscreenImage);
+            fullscreenOverlay.addEventListener('click', function(e) {
+                if (e.target === fullscreenOverlay) {
+                    hideFullscreenImage();
+                }
+            });
+            
             toggleUiBtn.addEventListener('click', toggleUI);
+            toggleApiBtn.addEventListener('click', toggleApiSelector);
+            apiSelector.addEventListener('click', selectApi);
             
             window.addEventListener('beforeunload', () => {
-                if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
+                if (currentImageUrl && currentImageUrl.startsWith('blob:')) {
+                    URL.revokeObjectURL(currentImageUrl);
+                }
             });
         });
     </script>
