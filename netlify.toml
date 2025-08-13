@@ -1,19 +1,54 @@
 [build]
-  # 纯静态网站无需构建命令
   command = ""
-  # 发布根目录下的所有文件
   publish = "."
 
-# 配置代理规则，合并所有请求方法
+# 代理 1：默认API（loliapi.com）
 [[redirects]]
-  from = "/github-pages/"
-  to = "https://aetck.dpdns.org/:splat"
+  from = "/proxy-loliapi/*"  # 前端请求路径前缀
+  to = "https://www.loliapi.com/:splat"  # 目标API域名
   status = 200
   force = true
-  methods = ["GET", "POST", "OPTIONS"]  # 明确允许的方法
+  methods = ["GET", "POST", "OPTIONS"]
+  [redirects.headers]
+    Access-Control-Allow-Origin = "*"  # 放宽跨域限制（生产环境可指定域名）
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+
+# 代理 2：alcy.cc 相关API（t.alcy.cc）
+[[redirects]]
+  from = "/proxy-alcy/*"
+  to = "https://t.alcy.cc/:splat"
+  status = 200
+  force = true
+  methods = ["GET", "POST", "OPTIONS"]
   [redirects.headers]
     Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type"
-    # 如果需要传递cookie等凭证，取消下面这行的注释
-    # Access-Control-Allow-Credentials = "true"
+
+# 代理 3：anosu.top 相关API（image.anosu.top）
+[[redirects]]
+  from = "/proxy-anosu/*"
+  to = "https://image.anosu.top/:splat"
+  status = 200
+  force = true
+  methods = ["GET", "POST", "OPTIONS"]
+  [redirects.headers]
+    Access-Control-Allow-Origin = "*"
+
+# 代理 4：98qy.com 相关API（www.98qy.com）
+[[redirects]]
+  from = "/proxy-98qy/*"
+  to = "http://www.98qy.com/:splat"
+  status = 200
+  force = true
+  methods = ["GET", "POST", "OPTIONS"]
+  [redirects.headers]
+    Access-Control-Allow-Origin = "*"
+
+# 代理 5：mtyqx.cn 相关API（api.mtyqx.cn）
+[[redirects]]
+  from = "/proxy-mtyqx/*"
+  to = "https://api.mtyqx.cn/:splat"
+  status = 200
+  force = true
+  methods = ["GET", "POST", "OPTIONS"]
+  [redirects.headers]
+    Access-Control-Allow-Origin = "*"
