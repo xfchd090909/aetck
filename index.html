@@ -6,6 +6,8 @@
     <title>二次元图片随机生成器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 引入NekosAPI官方库 -->
+    <script src="https://unpkg.com/nekosapi@latest/dist/browser/nekosapi.min.js"></script>
     
     <!-- 配置Tailwind自定义颜色 -->
     <script>
@@ -41,37 +43,6 @@
             }
             .control-btn {
                 @apply w-10 h-10 rounded-full flex items-center justify-center text-white bg-primary/80 hover:bg-accent transition-all duration-300 ease-in-out shadow-lg hover:shadow-accent/30 hover:scale-110 active:scale-95 backdrop-blur-sm;
-            }
-            .modal-enter {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            .modal-enter-active {
-                opacity: 1;
-                transform: translateY(0);
-                transition: opacity 300ms, transform 300ms;
-            }
-            .modal-exit {
-                opacity: 1;
-            }
-            .modal-exit-active {
-                opacity: 0;
-                transform: translateY(20px);
-                transition: opacity 300ms, transform 300ms;
-            }
-            .viewer-enter {
-                opacity: 0;
-            }
-            .viewer-enter-active {
-                opacity: 1;
-                transition: opacity 300ms;
-            }
-            .viewer-exit {
-                opacity: 1;
-            }
-            .viewer-exit-active {
-                opacity: 0;
-                transition: opacity 300ms;
             }
         }
     </style>
@@ -125,7 +96,7 @@
                 <span class="text-white">pic.re</span>
             </label>
             <label class="flex items-center p-3 rounded-lg bg-primary/10 hover:bg-primary/20 cursor-pointer transition-colors">
-                <input type="radio" name="api" value="https://api.nekosapi.com/v4/images/random" class="mr-3 accent-accent">
+                <input type="radio" name="api" value="nekosapi" class="mr-3 accent-accent">
                 <span class="text-white">nekosapi.com</span>
             </label>
             <label class="flex items-center p-3 rounded-lg bg-primary/10 hover:bg-primary/20 cursor-pointer transition-colors">
@@ -166,6 +137,9 @@
     </footer>
 
     <script>
+        // 初始化NekosAPI客户端
+        const nekos = new NekosAPI();
+        
         // DOM元素
         const imageContainer = document.getElementById('image-container');
         const mainImage = document.getElementById('main-image');
@@ -192,11 +166,11 @@
             'https://nekos.best/api/v2/neko',
             'https://api.waifu.im/search/?included_tags=waifu',
             'https://pic.re/image',
-            'https://api.nekosapi.com/v4/images/random',
+            'nekosapi',  // 使用特殊标识符表示NekosAPI官方库
             'https://nekobot.xyz/api/image?type=neko',
             'https://www.loliapi.com/acg/'
         ];
-        // CORS代理，用于解决跨域问题
+        // CORS代理，用于解决其他API的跨域问题
         const corsProxy = 'https://corsproxy.io/?';
         let currentApiIndex = 0;
         let currentImageUrl = '';
@@ -233,12 +207,21 @@
         }
         
         // 从API获取图片URL
-        async function getImageUrlFromApi(apiUrl) {
+        async function getImageUrlFromApi(apiIdentifier) {
             try {
-                // 对于有CORS问题的API，使用代理
-                const urlToFetch = apiUrl.includes('nekosapi.com') 
-                    ? `${corsProxy}${encodeURIComponent(apiUrl)}` 
-                    : apiUrl;
+                // 特殊处理NekosAPI，使用官方库
+                if (apiIdentifier === 'nekosapi') {
+                    // 根据官方文档，使用getRandomImage()方法获取随机图片
+                    // 我们指定"catgirl"类别，不指定则返回完全随机的图片
+                    const image = await nekos.getRandomImage(["catgirl"]);
+                    return image.url;
+                }
+                
+                // 处理其他API
+                const urlToFetch = apiIdentifier.includes('waifu.im') || 
+                                  apiIdentifier.includes('nekobot.xyz')
+                    ? `${corsProxy}${encodeURIComponent(apiIdentifier)}` 
+                    : apiIdentifier;
                 
                 const response = await fetch(urlToFetch);
                 
@@ -248,42 +231,34 @@
                 }
                 
                 // 不同API有不同的响应格式，需要特殊处理
-                if (apiUrl === 'https://nekos.best/api/v2/neko') {
+                if (apiIdentifier === 'https://nekos.best/api/v2/neko') {
                     const data = await response.json();
                     return data.results[0].url;
-                } else if (apiUrl === 'https://api.waifu.im/search/?included_tags=waifu') {
+                } else if (apiIdentifier === 'https://api.waifu.im/search/?included_tags=waifu') {
                     const data = await response.json();
                     return data.images[0].url;
-                } else if (apiUrl === 'https://pic.re/image') {
+                } else if (apiIdentifier === 'https://pic.re/image') {
                     // 这个API直接返回图片
-                    return apiUrl;
-                } else if (apiUrl === 'https://api.nekosapi.com/v4/images/random') {
-                    const data = await response.json();
-                    // 检查返回数据结构是否正确
-                    if (data && data.data && data.data.attributes && data.data.attributes.file) {
-                        return data.data.attributes.file;
-                    } else {
-                        throw new Error('nekosapi.com返回的数据格式不正确');
-                    }
-                } else if (apiUrl === 'https://nekobot.xyz/api/image?type=neko') {
+                    return apiIdentifier;
+                } else if (apiIdentifier === 'https://nekobot.xyz/api/image?type=neko') {
                     const data = await response.json();
                     return data.message;
-                } else if (apiUrl === 'https://www.loliapi.com/acg/') {
+                } else if (apiIdentifier === 'https://www.loliapi.com/acg/') {
                     const data = await response.json();
                     return data.data.url;
                 }
             } catch (error) {
-                console.error(`API请求错误 (${apiUrl}):`, error);
+                console.error(`API请求错误 (${apiIdentifier}):`, error);
                 throw error;
             }
         }
         
         // 加载图片
-        async function loadImage(apiUrl = null) {
+        async function loadImage(apiIdentifier = null) {
             if (isLoading) return;
             
             showLoader();
-            const urlToUse = apiUrl || apiList[currentApiIndex];
+            const identifierToUse = apiIdentifier || apiList[currentApiIndex];
             let imageUrl;
             
             // 清除之前的超时计时器
@@ -306,7 +281,7 @@
                 }, 15000);
                 
                 // 获取图片URL
-                imageUrl = await getImageUrlFromApi(urlToUse);
+                imageUrl = await getImageUrlFromApi(identifierToUse);
                 
                 // 清除超时计时器
                 clearTimeout(timeoutTimer);
@@ -383,7 +358,7 @@
         function downloadImage() {
             if (!currentImageUrl) return;
             
-            // 对于使用代理的图片，直接使用原始URL下载
+            // 处理代理URL
             let downloadUrl = currentImageUrl;
             if (downloadUrl.includes(corsProxy)) {
                 downloadUrl = decodeURIComponent(downloadUrl.replace(corsProxy, ''));
