@@ -7,7 +7,7 @@
 # 配置代理规则，合并所有请求方法
 [[redirects]]
   from = "/github-pages/*"
-  to = "https://xfchd090909.github.io/aetck/:splat"
+  to = "https://t.alcy.cc/pc/:splat"
   status = 200
   force = true
   methods = ["GET", "POST", "OPTIONS"]  # 明确允许的方法
