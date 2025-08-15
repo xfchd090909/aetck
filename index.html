@@ -6,7 +6,251 @@
     <title>Æ-随机二次元图片</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* 样式部分保持不变 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+            transition: background-image 0.5s ease;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .control-panel {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 8px;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            margin-top: auto;
+            position: sticky;
+            bottom: 0;
+            backdrop-filter: blur(2px);
+            transition: transform 0.3s ease;
+        }
+        
+        .control-panel.hidden {
+            transform: translateY(100%);
+        }
+        
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-width: 300px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        
+        button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            background-color: #ff6b81;
+            color: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+        }
+        
+        button:hover {
+            background-color: #ff4757;
+            transform: translateY(-1px);
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .download-btn, .fullscreen-btn {
+            opacity: 0;
+            transform: translateX(-100%);
+            height: 0;
+            padding: 0;
+            margin: 0;
+            background-color: #2ed573;
+            transition: 
+                opacity 0.4s ease,
+                transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                height 0.4s ease,
+                padding 0.4s ease,
+                margin 0.4s ease;
+        }
+        
+        .download-btn.visible, .fullscreen-btn.visible {
+            opacity: 1;
+            transform: translateX(0);
+            height: auto;
+            padding: 6px 12px;
+            margin: 0;
+        }
+        
+        .fullscreen-btn {
+            background-color: #1e90ff;
+        }
+        
+        .loading {
+            display: none;
+            margin: 4px 0;
+        }
+        
+        .spinner {
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 2px solid #ff6b81;
+            width: 16px;
+            height: 16px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        
+        .notice {
+            font-size: 0.6rem;
+            color: #666;
+            margin-top: 4px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            font-size: 0.8rem;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .toggle-ui-btn {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-ui-btn:hover {
+            background-color: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+        }
+        
+        .toggle-ui-btn i {
+            font-size: 1rem;
+            color: #333;
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle-ui-btn.active i {
+            transform: rotate(180deg);
+        }
+        
+        .api-selector {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .api-selector.visible {
+            display: flex;
+        }
+        
+        .api-option {
+            display: flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .api-option:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .api-option input {
+            margin-right: 8px;
+        }
+        
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .fullscreen-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .fullscreen-image {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        
+        .close-fullscreen {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -201,6 +445,7 @@
                     const img = new Image();
                     img.onload = () => {
                         document.body.style.backgroundImage = `url(${currentImageUrl})`;
+                        // 添加延迟让加载动画更自然
                         setTimeout(() => {
                             downloadBtn.disabled = false;
                             fullscreenBtn.disabled = false;
