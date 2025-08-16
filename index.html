@@ -405,6 +405,26 @@
                 setTimeout(() => toastElement.classList.remove('show'), duration);
             }
             
+            // 安全获取主机名
+            function getHostName(url) {
+                try {
+                    // 如果URL是相对路径，尝试转换为绝对URL
+                    if (!url.startsWith('http')) {
+                        // 对于Pic.re API，使用其基础URL
+                        if (selectedApi.includes('https://pic.re/image')) {
+                            const baseUrl = 'https://pic.re';
+                            return new URL(url, baseUrl).hostname;
+                        }
+                        // 其他情况使用当前页面基础URL
+                        return new URL(url, window.location.href).hostname;
+                    }
+                    return new URL(url).hostname;
+                } catch (e) {
+                    console.error('解析URL失败:', e);
+                    return '未知来源';
+                }
+            }
+            
             // 获取图片的统一方法
             async function fetchImage(url) {
                 try {
@@ -527,8 +547,8 @@
                     // 设置背景图片
                     document.body.style.backgroundImage = `url(${currentImageUrl})`;
                     
-                    // 更新图片信息
-                    imageInfo.textContent = `图片来源: ${new URL(sourceUrl).hostname}`;
+                    // 更新图片信息 - 使用安全的URL解析方法
+                    imageInfo.textContent = `图片来源: ${getHostName(sourceUrl)}`;
                     
                     // 启用按钮
                     downloadBtn.disabled = false;
