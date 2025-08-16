@@ -408,46 +408,17 @@
             // 获取图片的统一方法
             async function fetchImage(url) {
                 try {
-                    // 特殊处理pic.re API - 使用重定向模式
-                    if (url.includes('pic.re')) {
-                        // 第一次请求获取重定向后的URL
-                        const redirectResponse = await fetch(url, { redirect: 'manual' });
-                        
-                        if (redirectResponse.status === 301 || redirectResponse.status === 302) {
-                            // 获取重定向后的URL
-                            const redirectUrl = redirectResponse.headers.get('Location');
-                            
-                            if (!redirectUrl) {
-                                throw new Error('无法获取重定向URL');
-                            }
-                            
-                            // 第二次请求获取实际图片
-                            const imageResponse = await fetch(redirectUrl);
-                            
-                            if (!imageResponse.ok) {
-                                throw new Error('图片获取失败');
-                            }
-                            
-                            return {
-                                blob: await imageResponse.blob(),
-                                sourceUrl: redirectUrl
-                            };
-                        } else {
-                            throw new Error('未收到预期的重定向响应');
-                        }
+                    const response = await fetch(url);
+                    
+                    if (!response.ok) {
+                        throw new Error(`API请求失败: ${response.status}`);
                     }
                     
-                    // 处理返回JSON的API
+                    // 对于返回JSON的API
                     if (url.includes('nekos.best') || 
                         url.includes('waifu.im') || 
                         url.includes('nekosapi.com') || 
                         url.includes('nekobot.xyz')) {
-                        
-                        const response = await fetch(url);
-                        
-                        if (!response.ok) {
-                            throw new Error(`API请求失败: ${response.status}`);
-                        }
                         
                         const data = await response.json();
                         let imageUrl;
@@ -473,9 +444,6 @@
                     }
                     // 对于直接返回图片的API
                     else {
-                        const response = await fetch(url);
-                        if (!response.ok) throw new Error('图片获取失败');
-                        
                         return {
                             blob: await response.blob(),
                             sourceUrl: url
@@ -571,4 +539,68 @@
                     showToast("图片下载开始...");
                 } catch (error) {
                     console.error('下载失败:', error);
-       
+                    showToast("下载失败: " + error.message);
+                }
+            }
+            
+            // 全屏查看
+            function showFullscreenImage() {
+                if (!currentImageUrl) {
+                    showToast("没有可显示的图片");
+                    return;
+                }
+                
+                fullscreenImage.src = currentImageUrl;
+                fullscreenOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            // 关闭全屏
+            function hideFullscreenImage() {
+                fullscreenOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            
+            // API选择
+            function handleApiSelection(event) {
+                if (event.target.tagName === 'INPUT') {
+                    selectedApi = event.target.value;
+                    selectedApiName = event.target.nextElementSibling.textContent;
+                    apiNameElement.textContent = selectedApiName;
+                    showToast(`已选择: ${selectedApiName}`);
+                }
+            }
+            
+            // 事件监听
+            randomBtn.addEventListener('click', generateRandomImage);
+            downloadBtn.addEventListener('click', downloadImage);
+            fullscreenBtn.addEventListener('click', showFullscreenImage);
+            closeFullscreen.addEventListener('click', hideFullscreenImage);
+            fullscreenOverlay.addEventListener('click', function(e) {
+                if (e.target === fullscreenOverlay) {
+                    hideFullscreenImage();
+                }
+            });
+            
+            // API选择器事件
+            document.getElementById('toggle-api-btn').addEventListener('click', function() {
+                apiSelector.classList.toggle('visible');
+            });
+            
+            apiSelector.addEventListener('click', handleApiSelection);
+            
+            // 初始状态
+            document.body.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)';
+            updateImageCount();
+            apiNameElement.textContent = selectedApiName;
+            
+            // 清理
+            window.addEventListener('beforeunload', () => {
+                if (currentImageUrl) {
+                    URL.revokeObjectURL(currentImageUrl);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
