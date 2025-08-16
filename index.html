@@ -409,45 +409,61 @@
             async function fetchImage(url) {
                 try {
                     let response;
+                    let imageUrl;
                     
-                    // 对Pic.re API使用POST请求
+                    // 对Pic.re API使用POST请求并解析JSON
                     if (url.includes('https://pic.re/image')) {
                         response = await fetch(url, {
                             method: 'POST',
                             headers: {
-                                'Accept': 'image/*'
+                                'Accept': 'application/json'
                             }
                         });
+                        
+                        if (!response.ok) {
+                            throw new Error(`Pic.re API请求失败: ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        imageUrl = data.file_url; // 从JSON中提取file_url
                     } 
                     // 其他API保持GET请求
                     else {
                         response = await fetch(url);
-                    }
-                    
-                    if (!response.ok) {
-                        throw new Error(`API请求失败: ${response.status}`);
-                    }
-                    
-                    // 对于返回JSON的API
-                    if (url.includes('nekos.best') || 
-                        url.includes('waifu.im') || 
-                        url.includes('nekosapi.com') || 
-                        url.includes('nekobot.xyz')) {
                         
-                        const data = await response.json();
-                        let imageUrl;
-                        
-                        if (url.includes('nekos.best')) {
-                            imageUrl = data.results[0].url;
-                        } else if (url.includes('waifu.im')) {
-                            imageUrl = data.images[0].url;
-                        } else if (url.includes('nekosapi.com')) {
-                            imageUrl = data.data.attributes.file;
-                        } else if (url.includes('nekobot.xyz')) {
-                            imageUrl = data.message;
+                        if (!response.ok) {
+                            throw new Error(`API请求失败: ${response.status}`);
                         }
                         
-                        // 获取实际的图片
+                        // 对于返回JSON的API
+                        if (url.includes('nekos.best') || 
+                            url.includes('waifu.im') || 
+                            url.includes('nekosapi.com') || 
+                            url.includes('nekobot.xyz')) {
+                            
+                            const data = await response.json();
+                            
+                            if (url.includes('nekos.best')) {
+                                imageUrl = data.results[0].url;
+                            } else if (url.includes('waifu.im')) {
+                                imageUrl = data.images[0].url;
+                            } else if (url.includes('nekosapi.com')) {
+                                imageUrl = data.data.attributes.file;
+                            } else if (url.includes('nekobot.xyz')) {
+                                imageUrl = data.message;
+                            }
+                        }
+                        // 对于直接返回图片的API
+                        else {
+                            return {
+                                blob: await response.blob(),
+                                sourceUrl: url
+                            };
+                        }
+                    }
+                    
+                    // 对于需要二次获取图片的API
+                    if (imageUrl) {
                         const imageResponse = await fetch(imageUrl);
                         if (!imageResponse.ok) throw new Error('图片获取失败');
                         
@@ -456,13 +472,8 @@
                             sourceUrl: imageUrl
                         };
                     }
-                    // 对于直接返回图片的API
-                    else {
-                        return {
-                            blob: await response.blob(),
-                            sourceUrl: url
-                        };
-                    }
+                    
+                    throw new Error('未处理的API类型');
                 } catch (error) {
                     console.error('获取图片失败:', error);
                     showToast(`错误: ${error.message || '获取图片失败'}`, 3000);
