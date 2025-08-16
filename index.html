@@ -22,79 +22,48 @@
             background-attachment: fixed;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-end;
             align-items: center;
             color: #fff;
             text-shadow: 0 0 10px rgba(0,0,0,0.5);
-            padding: 20px;
             overflow-x: hidden;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 0 20px;
-            max-width: 800px;
-        }
-        
-        h1 {
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            background: linear-gradient(45deg, #ff6b81, #ff4757, #1e90ff, #2ed573);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: gradient 5s ease infinite;
-            background-size: 400% 400%;
-            letter-spacing: 1px;
-        }
-        
-        .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.85;
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
         }
         
         .control-panel {
             background-color: rgba(30, 30, 46, 0.92);
-            padding: 25px;
-            border-radius: 18px;
-            box-shadow: 0 8px 35px rgba(0, 0, 0, 0.6);
+            padding: 10px;
             width: 100%;
-            max-width: 550px;
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
             z-index: 100;
         }
         
         .button-group {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
+            justify-content: center;
+            gap: 8px;
+            max-width: 500px;
+            margin: 0 auto;
         }
         
         button {
-            padding: 14px 25px;
             border: none;
-            border-radius: 10px;
-            background: linear-gradient(45deg, #ff6b81, #ff4757);
+            border-radius: 8px;
             color: white;
-            font-size: 1.1rem;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            width: 100%;
-            box-shadow: 0 5px 15px rgba(255, 107, 129, 0.35);
+            width: 40px;
+            height: 40px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            font-size: 1rem;
         }
         
         button:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(255, 107, 129, 0.6);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
         }
         
         button:active {
@@ -108,43 +77,43 @@
             box-shadow: none;
         }
         
-        .download-btn {
-            background: linear-gradient(45deg, #2ed573, #1dd1a1);
-            box-shadow: 0 5px 15px rgba(46, 213, 115, 0.35);
+        #random-btn {
+            background: linear-gradient(45deg, #ff6b81, #ff4757);
         }
         
-        .fullscreen-btn {
-            background: linear-gradient(45deg, #1e90ff, #3742fa);
-            box-shadow: 0 5px 15px rgba(30, 144, 255, 0.35);
-        }
-        
-        .api-btn {
+        #toggle-api-btn {
             background: linear-gradient(45deg, #9c88ff, #8c7ae6);
-            box-shadow: 0 5px 15px rgba(156, 136, 255, 0.35);
+        }
+        
+        #download-btn {
+            background: linear-gradient(45deg, #2ed573, #1dd1a1);
+        }
+        
+        #fullscreen-btn {
+            background: linear-gradient(45deg, #1e90ff, #3742fa);
         }
         
         .loading {
             display: none;
-            margin: 15px 0;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             text-align: center;
+            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
         }
         
         .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            border-top: 4px solid #ff6b81;
-            width: 40px;
-            height: 40px;
+            border-top: 3px solid #ff6b81;
+            width: 30px;
+            height: 30px;
             animation: spin 0.8s linear infinite;
-            margin: 0 auto;
-        }
-        
-        .notice {
-            font-size: 0.85rem;
-            color: #a9a9b3;
-            margin-top: 20px;
-            text-align: center;
-            line-height: 1.6;
+            margin: 0 auto 10px;
         }
         
         .toast {
@@ -154,12 +123,12 @@
             transform: translateX(-50%) translateY(-25px);
             background-color: rgba(0, 0, 0, 0.85);
             color: white;
-            padding: 15px 30px;
+            padding: 12px 25px;
             border-radius: 10px;
             opacity: 0;
             transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             z-index: 1000;
-            font-size: 1rem;
+            font-size: 0.9rem;
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             max-width: 90%;
@@ -202,10 +171,10 @@
         
         .close-fullscreen {
             position: absolute;
-            top: 30px;
-            right: 30px;
+            top: 20px;
+            right: 20px;
             color: white;
-            font-size: 3rem;
+            font-size: 2rem;
             cursor: pointer;
             transition: transform 0.3s ease;
             z-index: 10;
@@ -217,46 +186,18 @@
         
         .image-info {
             position: absolute;
-            bottom: 25px;
+            bottom: 20px;
             left: 0;
             width: 100%;
             text-align: center;
-            font-size: 1rem;
+            font-size: 0.9rem;
             color: rgba(255, 255, 255, 0.8);
-            padding: 0 20px;
+            padding: 0 15px;
         }
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-        
-        @keyframes gradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        
-        .stats {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 20px;
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 120px;
-        }
-        
-        .stat-value {
-            font-weight: bold;
-            font-size: 1.4rem;
-            color: #ff6b81;
         }
         
         /* API弹窗样式 */
@@ -296,7 +237,7 @@
             background-color: rgba(26, 26, 46, 0.98);
             border-radius: 18px;
             width: 95%;
-            max-width: 700px;
+            max-width: 600px;
             max-height: 85vh;
             overflow: hidden;
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
@@ -314,7 +255,7 @@
         }
         
         .modal-header {
-            padding: 22px 25px;
+            padding: 18px 20px;
             background-color: rgba(30, 30, 46, 0.9);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             position: sticky;
@@ -324,7 +265,7 @@
         }
         
         .modal-title {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             background: linear-gradient(45deg, #9c88ff, #8c7ae6);
             -webkit-background-clip: text;
             background-clip: text;
@@ -333,20 +274,20 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 10px;
         }
         
         .modal-close {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 15px;
+            right: 15px;
             background: none;
             border: none;
             color: #fff;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             cursor: pointer;
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -359,22 +300,22 @@
         }
         
         .modal-body {
-            padding: 0 25px 25px;
+            padding: 0 20px 20px;
             overflow-y: auto;
-            max-height: calc(85vh - 80px);
+            max-height: calc(85vh - 70px);
         }
         
         .api-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 18px;
-            padding: 20px 0;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            padding: 15px 0;
         }
         
         .api-card {
             background-color: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
-            padding: 20px;
+            padding: 15px;
             transition: all 0.3s ease;
             border: 1px solid transparent;
             cursor: pointer;
@@ -401,8 +342,8 @@
             right: 0;
             width: 0;
             height: 0;
-            border-top: 40px solid rgba(156, 136, 255, 0.6);
-            border-left: 40px solid transparent;
+            border-top: 35px solid rgba(156, 136, 255, 0.6);
+            border-left: 35px solid transparent;
         }
         
         .api-card.selected::after {
@@ -413,33 +354,33 @@
             top: 5px;
             right: 5px;
             color: white;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
         
         .api-name {
             font-weight: bold;
             display: flex;
             align-items: center;
-            margin-bottom: 12px;
-            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
         }
         
         .api-name i {
-            margin-right: 12px;
+            margin-right: 10px;
             color: #9c88ff;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
         }
         
         .api-tags {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
-            margin-top: 15px;
+            margin-top: 12px;
         }
         
         .api-tag {
-            font-size: 0.85rem;
-            padding: 5px 12px;
+            font-size: 0.8rem;
+            padding: 4px 10px;
             border-radius: 20px;
             background-color: rgba(30, 144, 255, 0.2);
             color: #1e90ff;
@@ -468,16 +409,16 @@
         .api-divider {
             height: 1px;
             background-color: rgba(255, 255, 255, 0.1);
-            margin: 20px 0;
+            margin: 15px 0;
         }
         
         .modal-footer {
             margin-top: 10px;
             text-align: center;
-            padding: 15px 0 5px;
+            padding: 12px 0 5px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             color: #a9a9b3;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         
         /* 警告弹窗样式 */
@@ -506,8 +447,8 @@
             background-color: rgba(40, 15, 30, 0.95);
             border-radius: 18px;
             width: 95%;
-            max-width: 500px;
-            padding: 35px 30px;
+            max-width: 450px;
+            padding: 25px 20px;
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
             z-index: 2;
             transform: translateY(40px) scale(0.95);
@@ -523,45 +464,45 @@
         
         .warning-header {
             text-align: center;
-            margin-bottom: 25px;
-        }
-        
-        .warning-icon {
-            font-size: 3.5rem;
-            color: #ff6b81;
             margin-bottom: 20px;
         }
         
-        .warning-title {
-            font-size: 1.8rem;
+        .warning-icon {
+            font-size: 2.8rem;
+            color: #ff6b81;
             margin-bottom: 15px;
+        }
+        
+        .warning-title {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
             color: #ff6b81;
         }
         
         .warning-message {
-            font-size: 1.1rem;
-            line-height: 1.7;
-            margin-bottom: 30px;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
             color: rgba(255, 255, 255, 0.9);
             background-color: rgba(0, 0, 0, 0.3);
-            padding: 20px;
+            padding: 15px;
             border-radius: 12px;
         }
         
         .warning-actions {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             justify-content: center;
         }
         
         .warning-btn {
-            padding: 14px 30px;
+            padding: 12px 25px;
             border: none;
             border-radius: 10px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s;
-            min-width: 140px;
+            min-width: 120px;
         }
         
         .confirm-btn {
@@ -586,17 +527,15 @@
         }
         
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2.2rem;
-            }
-            
-            .control-panel {
-                padding: 20px;
+            .button-group {
+                max-width: 100%;
+                padding: 0 10px;
             }
             
             button {
-                padding: 12px 20px;
-                font-size: 1rem;
+                width: 36px;
+                height: 36px;
+                font-size: 0.9rem;
             }
             
             .modal-content, .warning-content {
@@ -615,36 +554,21 @@
             .warning-btn {
                 width: 100%;
             }
-            
-            .stats {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .stat-item {
-                min-width: auto;
-            }
         }
         
         @media (max-width: 480px) {
-            h1 {
-                font-size: 1.8rem;
-            }
-            
-            .subtitle {
-                font-size: 0.95rem;
-            }
-            
-            .control-panel {
-                padding: 18px;
+            button {
+                width: 32px;
+                height: 32px;
+                font-size: 0.8rem;
             }
             
             .modal-header {
-                padding: 18px 15px;
+                padding: 15px;
             }
             
             .modal-title {
-                font-size: 1.4rem;
+                font-size: 1.3rem;
             }
             
             .modal-body {
@@ -652,57 +576,37 @@
             }
             
             .api-card {
-                padding: 15px;
+                padding: 12px;
             }
             
             .api-name {
-                font-size: 1.1rem;
+                font-size: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1><i class="fas fa-images"></i> Æ-随机二次元图片</h1>
-        <p class="subtitle">点击下方按钮获取精美二次元图片，支持多种API源，可下载或全屏查看</p>
-    </div>
-    
     <div class="control-panel">
         <div class="button-group" id="button-group">
-            <button id="random-btn">
+            <button id="random-btn" title="随机图片">
                 <i class="fas fa-random"></i>
-                <span>随机图片</span>
             </button>
-            <button id="toggle-api-btn" class="api-btn">
+            <button id="toggle-api-btn" title="选择API源">
                 <i class="fas fa-cog"></i>
-                <span>选择API源</span>
             </button>
-            <button id="download-btn" class="download-btn" disabled>
+            <button id="download-btn" title="下载图片" disabled>
                 <i class="fas fa-download"></i>
-                <span>下载图片</span>
             </button>
-            <button id="fullscreen-btn" class="fullscreen-btn" disabled>
+            <button id="fullscreen-btn" title="全屏查看" disabled>
                 <i class="fas fa-expand"></i>
-                <span>全屏查看</span>
             </button>
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <div style="margin-top: 15px;">正在获取图片中...</div>
-            </div>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-value" id="image-count">0</div>
-                    <div>已加载图片</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="api-name">默认API</div>
-                    <div>当前API源</div>
-                </div>
-            </div>
-            
-            <p class="notice">提示：部分API源来自境外，加载速度可能较慢<br>遇到无法使用的API请报告至：teada2024@163.com</p>
         </div>
+        <p class="notice">提示：部分API源来自境外，加载速度可能较慢<br>遇到无法使用的API请报告至：teada2024@163.com</p>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div style="margin-top: 10px;">正在获取图片中...</div>
     </div>
 
     <div class="toast" id="toast">请等待图片加载完成</div>
@@ -766,8 +670,6 @@
             const fullscreenImage = document.getElementById('fullscreen-image');
             const closeFullscreen = document.getElementById('close-fullscreen');
             const imageInfo = document.getElementById('image-info');
-            const imageCountElement = document.getElementById('image-count');
-            const apiNameElement = document.getElementById('api-name');
             
             // API弹窗元素
             const apiModal = document.getElementById('api-modal');
@@ -786,7 +688,6 @@
             let currentImageUrl = '';
             let currentImageBlob = null;
             let isFetching = false;
-            let imageCount = 0;
             let selectedApi = 'https://www.loliapi.com/acg/';
             let selectedApiDisplayName = '默认API';
             let pendingApi = null; // 等待确认的API
@@ -919,8 +820,6 @@
             
             function init() {
                 renderApiGrid();
-                updateImageCount();
-                apiNameElement.textContent = selectedApiDisplayName;
                 
                 // 初始背景
                 document.body.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)';
@@ -973,7 +872,6 @@
                 selectedApi = api.url;
                 selectedApiDisplayName = api.name;
                 selectedApiName.textContent = `${api.name}`;
-                apiNameElement.textContent = api.name;
                 
                 showToast(`已选择: ${api.name}`);
             }
@@ -1009,11 +907,6 @@
             // 关闭警告弹窗
             function closeWarningModal() {
                 warningModal.classList.remove('active');
-            }
-            
-            // 更新图片计数器
-            function updateImageCount() {
-                imageCountElement.textContent = imageCount;
             }
             
             // 显示通知
@@ -1119,10 +1012,6 @@
                     // 启用按钮
                     downloadBtn.disabled = false;
                     fullscreenBtn.disabled = false;
-                    
-                    // 更新计数器
-                    imageCount++;
-                    updateImageCount();
                     
                     showToast("图片加载成功！");
                 } catch (error) {
