@@ -426,6 +426,15 @@
                         
                         const data = await response.json();
                         imageUrl = data.file_url; // 从JSON中提取file_url
+                        
+                        // 获取实际的图片
+                        const imageResponse = await fetch(imageUrl);
+                        if (!imageResponse.ok) throw new Error('图片获取失败');
+                        
+                        return {
+                            blob: await imageResponse.blob(),
+                            sourceUrl: imageUrl
+                        };
                     } 
                     // 其他API保持GET请求
                     else {
@@ -452,6 +461,15 @@
                             } else if (url.includes('nekobot.xyz')) {
                                 imageUrl = data.message;
                             }
+                            
+                            // 获取实际的图片
+                            const imageResponse = await fetch(imageUrl);
+                            if (!imageResponse.ok) throw new Error('图片获取失败');
+                            
+                            return {
+                                blob: await imageResponse.blob(),
+                                sourceUrl: imageUrl
+                            };
                         }
                         // 对于直接返回图片的API
                         else {
@@ -461,19 +479,6 @@
                             };
                         }
                     }
-                    
-                    // 对于需要二次获取图片的API
-                    if (imageUrl) {
-                        const imageResponse = await fetch(imageUrl);
-                        if (!imageResponse.ok) throw new Error('图片获取失败');
-                        
-                        return {
-                            blob: await imageResponse.blob(),
-                            sourceUrl: imageUrl
-                        };
-                    }
-                    
-                    throw new Error('未处理的API类型');
                 } catch (error) {
                     console.error('获取图片失败:', error);
                     showToast(`错误: ${error.message || '获取图片失败'}`, 3000);
@@ -536,6 +541,7 @@
                     showToast("图片加载成功！");
                 } catch (error) {
                     console.error('图片加载失败:', error);
+                    showToast(`图片加载失败: ${error.message}`, 3000);
                 } finally {
                     loadingElement.style.display = 'none';
                     isFetching = false;
