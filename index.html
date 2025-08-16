@@ -408,7 +408,21 @@
             // 获取图片的统一方法
             async function fetchImage(url) {
                 try {
-                    const response = await fetch(url);
+                    let response;
+                    
+                    // 对Pic.re API使用POST请求
+                    if (url.includes('https://pic.re/image')) {
+                        response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'image/*'
+                            }
+                        });
+                    } 
+                    // 其他API保持GET请求
+                    else {
+                        response = await fetch(url);
+                    }
                     
                     if (!response.ok) {
                         throw new Error(`API请求失败: ${response.status}`);
@@ -473,11 +487,13 @@
                     const timestamp = new Date().getTime();
                     let apiUrl = selectedApi;
                     
-                    // 为API添加时间戳防止缓存
-                    if (apiUrl.includes('?')) {
-                        apiUrl += `&timestamp=${timestamp}`;
-                    } else {
-                        apiUrl += `?timestamp=${timestamp}`;
+                    // 为API添加时间戳防止缓存（Pic.re除外）
+                    if (!apiUrl.includes('https://pic.re/image')) {
+                        if (apiUrl.includes('?')) {
+                            apiUrl += `&timestamp=${timestamp}`;
+                        } else {
+                            apiUrl += `?timestamp=${timestamp}`;
+                        }
                     }
                     
                     // 获取图片数据
