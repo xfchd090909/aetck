@@ -336,6 +336,31 @@
                     <input type="radio" name="api" id="api-genshin" value="https://aenews.dpdns.org/pixiv/direct?keyword=genshin&num=1&r18=1&size=original&proxy=i.pixiv.re">
                     <label for="api-genshin">原神图片API (anosu.top)</label>
                 </div>
+                <!-- 新增的游戏主题API源 -->
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-bluearchive" value="https://aenews.dpdns.org/pixiv/direct?keyword=bluearchive&num=1&r18=1&size=original&proxy=i.pixiv.re">
+                    <label for="api-bluearchive">碧蓝档案API</label>
+                </div>
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-azurlane" value="https://aenews.dpdns.org/pixiv/direct?keyword=azurlane&num=1&r18=1&size=original&proxy=i.pixiv.re">
+                    <label for="api-azurlane">碧蓝航线API</label>
+                </div>
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-arknights" value="https://aenews.dpdns.org/pixiv/direct?keyword=arknights&num=1&r18=1&size=original&proxy=i.pixiv.re">
+                    <label for="api-arknights">明日方舟API</label>
+                </div>
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-honkai" value="https://aenews.dpdns.org/pixiv/direct?keyword=honkai&num=1&r18=1&size=original&proxy=i.pixiv.re">
+                    <label for="api-honkai">崩坏API</label>
+                </div>
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-destiny" value="https://aenews.dpdns.org/pixiv/direct?keyword=destiny&num=1&r18=1&size=original&proxy=i.pixiv.re">
+                    <label for="api-destiny">命运API</label>
+                </div>
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-girlsfrontline" value="https://aenews.dpdns.org/pixiv/direct?keyword=girlsfrontline&num=1&r18=1&size=original&proxy=i.pixiv.re">
+                    <label for="api-girlsfrontline">少女前线API</label>
+                </div>
             </div>
             <button id="download-btn" class="download-btn" disabled>
                 <i class="fas fa-download"></i>
@@ -444,7 +469,7 @@
                             sourceUrl: imageUrl
                         };
                     }
-                    // 对于直接返回图片的API（包括新添加的原神API）
+                    // 对于直接返回图片的API（包括新添加的游戏API）
                     else {
                         return {
                             blob: await response.blob(),
