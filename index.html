@@ -286,26 +286,6 @@
             color: #ff6b81;
         }
         
-        .api-badge {
-            display: inline-block;
-            background: rgba(46, 213, 115, 0.3);
-            border-radius: 12px;
-            padding: 2px 8px;
-            font-size: 0.7rem;
-            margin-left: 8px;
-            vertical-align: middle;
-        }
-        
-        .proxy-indicator {
-            display: inline-block;
-            background: rgba(30, 144, 255, 0.3);
-            border-radius: 12px;
-            padding: 2px 8px;
-            font-size: 0.7rem;
-            margin-left: 8px;
-            vertical-align: middle;
-        }
-        
         @media (max-width: 600px) {
             h1 {
                 font-size: 2rem;
@@ -350,14 +330,6 @@
                     <input type="radio" name="api" id="api-waifu" value="https://api.waifu.im/search/?included_tags=waifu">
                     <label for="api-waifu">Waifu.im API</label>
                 </div>
-                <div class="api-option">
-                    <input type="radio" name="api" id="api-nekobot" value="https://api-proxy.xfchd090909.workers.dev/?url=https://nekobot.xyz/api/image?type=neko">
-                    <label for="api-nekobot">Nekobot.xyz API<span class="api-badge">新</span> <span class="proxy-indicator">代理</span></label>
-                </div>
-                <div class="api-option">
-                    <input type="radio" name="api" id="api-nekosapi" value="https://api-proxy.xfchd090909.workers.dev/?url=https://api.nekosapi.com/v4/images/random">
-                    <label for="api-nekosapi">Nekos API<span class="api-badge">新</span> <span class="proxy-indicator">代理</span></label>
-                </div>
             </div>
             <button id="download-btn" class="download-btn" disabled>
                 <i class="fas fa-download"></i>
@@ -380,10 +352,6 @@
                 <div class="stat-item">
                     <div class="stat-value" id="api-name">默认API</div>
                     <div>当前API源</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="proxy-status">未启用</div>
-                    <div>代理状态</div>
                 </div>
             </div>
             
@@ -413,7 +381,6 @@
             const imageInfo = document.getElementById('image-info');
             const imageCountElement = document.getElementById('image-count');
             const apiNameElement = document.getElementById('api-name');
-            const proxyStatusElement = document.getElementById('proxy-status');
             
             let currentImageUrl = '';
             let currentImageBlob = null;
@@ -421,17 +388,10 @@
             let imageCount = 0;
             let selectedApi = 'https://www.loliapi.com/acg/';
             let selectedApiName = '默认API';
-            let proxyActive = false;
             
             // 更新图片计数器
             function updateImageCount() {
                 imageCountElement.textContent = imageCount;
-            }
-            
-            // 更新代理状态
-            function updateProxyStatus() {
-                proxyStatusElement.textContent = proxyActive ? '已启用' : '未启用';
-                proxyStatusElement.style.color = proxyActive ? '#2ed573' : '#ff6b81';
             }
             
             // 显示通知
@@ -450,42 +410,23 @@
                         throw new Error(`API请求失败: ${response.status}`);
                     }
                     
-                    // 检测是否使用代理
-                    proxyActive = url.includes('api-proxy.xfchd090909.workers.dev');
-                    updateProxyStatus();
-                    
                     // 对于返回JSON的API
                     if (url.includes('nekos.best') || 
                         url.includes('waifu.im') || 
                         url.includes('nekosapi.com') || 
-                        url.includes('nekobot.xyz') ||
-                        proxyActive) {
+                        url.includes('nekobot.xyz')) {
                         
                         const data = await response.json();
                         let imageUrl;
                         
-                        // 处理代理响应
-                        if (proxyActive) {
-                            // 代理响应可能包含原始API的响应
-                            const originalUrl = new URL(url).searchParams.get('url');
-                            
-                            if (originalUrl.includes('nekobot.xyz')) {
-                                imageUrl = data.message;
-                            } else if (originalUrl.includes('nekosapi.com')) {
-                                imageUrl = data.data.attributes.file;
-                            }
-                        } 
-                        // 处理直接API
-                        else {
-                            if (url.includes('nekos.best')) {
-                                imageUrl = data.results[0].url;
-                            } else if (url.includes('waifu.im')) {
-                                imageUrl = data.images[0].url;
-                            } else if (url.includes('nekosapi.com')) {
-                                imageUrl = data.data.attributes.file;
-                            } else if (url.includes('nekobot.xyz')) {
-                                imageUrl = data.message;
-                            }
+                        if (url.includes('nekos.best')) {
+                            imageUrl = data.results[0].url;
+                        } else if (url.includes('waifu.im')) {
+                            imageUrl = data.images[0].url;
+                        } else if (url.includes('nekosapi.com')) {
+                            imageUrl = data.data.attributes.file;
+                        } else if (url.includes('nekobot.xyz')) {
+                            imageUrl = data.message;
                         }
                         
                         // 获取实际的图片
@@ -564,7 +505,6 @@
                     showToast("图片加载成功！");
                 } catch (error) {
                     console.error('图片加载失败:', error);
-                    showToast("图片加载失败，请重试或切换API源", 2500);
                 } finally {
                     loadingElement.style.display = 'none';
                     isFetching = false;
@@ -624,10 +564,6 @@
                     selectedApiName = event.target.nextElementSibling.textContent;
                     apiNameElement.textContent = selectedApiName;
                     showToast(`已选择: ${selectedApiName}`);
-                    
-                    // 重置代理状态
-                    proxyActive = selectedApi.includes('api-proxy.xfchd090909.workers.dev');
-                    updateProxyStatus();
                 }
             }
             
@@ -653,10 +589,6 @@
             document.body.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)';
             updateImageCount();
             apiNameElement.textContent = selectedApiName;
-            updateProxyStatus();
-            
-            // 加载初始图片
-            setTimeout(generateRandomImage, 500);
             
             // 清理
             window.addEventListener('beforeunload', () => {
