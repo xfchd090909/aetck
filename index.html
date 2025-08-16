@@ -286,6 +286,16 @@
             color: #ff6b81;
         }
         
+        .api-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        
         @media (max-width: 600px) {
             h1 {
                 font-size: 2rem;
@@ -331,8 +341,12 @@
                     <label for="api-waifu">Waifu.im API</label>
                 </div>
                 <div class="api-option">
-                    <input type="radio" name="api" id="api-picre" value="https://pic.re/image">
-                    <label for="api-picre">Pic.re API</label>
+                    <input type="radio" name="api" id="api-nekobot" value="https://nekobot.xyz/api/image?type=neko">
+                    <label for="api-nekobot">Nekobot.xyz API<span class="api-badge">新</span></label>
+                </div>
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-nekosapi" value="https://api.nekosapi.com/v4/images/random">
+                    <label for="api-nekosapi">Nekos API<span class="api-badge">新</span></label>
                 </div>
             </div>
             <button id="download-btn" class="download-btn" disabled>
@@ -405,47 +419,33 @@
                 setTimeout(() => toastElement.classList.remove('show'), duration);
             }
             
-            // 安全获取主机名
-            function getHostName(url) {
-                try {
-                    // 如果URL是相对路径，尝试转换为绝对URL
-                    if (!url.startsWith('http')) {
-                        // 对于Pic.re API，使用其基础URL
-                        if (selectedApi.includes('https://pic.re/image')) {
-                            const baseUrl = 'https://pic.re';
-                            return new URL(url, baseUrl).hostname;
-                        }
-                        // 其他情况使用当前页面基础URL
-                        return new URL(url, window.location.href).hostname;
-                    }
-                    return new URL(url).hostname;
-                } catch (e) {
-                    console.error('解析URL失败:', e);
-                    return '未知来源';
-                }
-            }
-            
             // 获取图片的统一方法
             async function fetchImage(url) {
                 try {
-                    let response;
-                    let imageUrl;
+                    const response = await fetch(url);
                     
-                    // 对Pic.re API使用POST请求并解析JSON
-                    if (url.includes('https://pic.re/image')) {
-                        response = await fetch(url, {
-                            method: 'POST',
-                            headers: {
-                                'Accept': 'application/json'
-                            }
-                        });
-                        
-                        if (!response.ok) {
-                            throw new Error(`Pic.re API请求失败: ${response.status}`);
-                        }
+                    if (!response.ok) {
+                        throw new Error(`API请求失败: ${response.status}`);
+                    }
+                    
+                    // 对于返回JSON的API
+                    if (url.includes('nekos.best') || 
+                        url.includes('waifu.im') || 
+                        url.includes('nekosapi.com') || 
+                        url.includes('nekobot.xyz')) {
                         
                         const data = await response.json();
-                        imageUrl = data.file_url; // 从JSON中提取file_url
+                        let imageUrl;
+                        
+                        if (url.includes('nekos.best')) {
+                            imageUrl = data.results[0].url;
+                        } else if (url.includes('waifu.im')) {
+                            imageUrl = data.images[0].url;
+                        } else if (url.includes('nekosapi.com')) {
+                            imageUrl = data.data.attributes.file;
+                        } else if (url.includes('nekobot.xyz')) {
+                            imageUrl = data.message;
+                        }
                         
                         // 获取实际的图片
                         const imageResponse = await fetch(imageUrl);
@@ -455,49 +455,13 @@
                             blob: await imageResponse.blob(),
                             sourceUrl: imageUrl
                         };
-                    } 
-                    // 其他API保持GET请求
+                    }
+                    // 对于直接返回图片的API
                     else {
-                        response = await fetch(url);
-                        
-                        if (!response.ok) {
-                            throw new Error(`API请求失败: ${response.status}`);
-                        }
-                        
-                        // 对于返回JSON的API
-                        if (url.includes('nekos.best') || 
-                            url.includes('waifu.im') || 
-                            url.includes('nekosapi.com') || 
-                            url.includes('nekobot.xyz')) {
-                            
-                            const data = await response.json();
-                            
-                            if (url.includes('nekos.best')) {
-                                imageUrl = data.results[0].url;
-                            } else if (url.includes('waifu.im')) {
-                                imageUrl = data.images[0].url;
-                            } else if (url.includes('nekosapi.com')) {
-                                imageUrl = data.data.attributes.file;
-                            } else if (url.includes('nekobot.xyz')) {
-                                imageUrl = data.message;
-                            }
-                            
-                            // 获取实际的图片
-                            const imageResponse = await fetch(imageUrl);
-                            if (!imageResponse.ok) throw new Error('图片获取失败');
-                            
-                            return {
-                                blob: await imageResponse.blob(),
-                                sourceUrl: imageUrl
-                            };
-                        }
-                        // 对于直接返回图片的API
-                        else {
-                            return {
-                                blob: await response.blob(),
-                                sourceUrl: url
-                            };
-                        }
+                        return {
+                            blob: await response.blob(),
+                            sourceUrl: url
+                        };
                     }
                 } catch (error) {
                     console.error('获取图片失败:', error);
@@ -523,13 +487,11 @@
                     const timestamp = new Date().getTime();
                     let apiUrl = selectedApi;
                     
-                    // 为API添加时间戳防止缓存（Pic.re除外）
-                    if (!apiUrl.includes('https://pic.re/image')) {
-                        if (apiUrl.includes('?')) {
-                            apiUrl += `&timestamp=${timestamp}`;
-                        } else {
-                            apiUrl += `?timestamp=${timestamp}`;
-                        }
+                    // 为API添加时间戳防止缓存
+                    if (apiUrl.includes('?')) {
+                        apiUrl += `&timestamp=${timestamp}`;
+                    } else {
+                        apiUrl += `?timestamp=${timestamp}`;
                     }
                     
                     // 获取图片数据
@@ -547,8 +509,8 @@
                     // 设置背景图片
                     document.body.style.backgroundImage = `url(${currentImageUrl})`;
                     
-                    // 更新图片信息 - 使用安全的URL解析方法
-                    imageInfo.textContent = `图片来源: ${getHostName(sourceUrl)}`;
+                    // 更新图片信息
+                    imageInfo.textContent = `图片来源: ${new URL(sourceUrl).hostname}`;
                     
                     // 启用按钮
                     downloadBtn.disabled = false;
@@ -561,7 +523,6 @@
                     showToast("图片加载成功！");
                 } catch (error) {
                     console.error('图片加载失败:', error);
-                    showToast(`图片加载失败: ${error.message}`, 3000);
                 } finally {
                     loadingElement.style.display = 'none';
                     isFetching = false;
