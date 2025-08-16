@@ -6,6 +6,7 @@
     <title>Æ-随机二次元图片</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* 保持原有样式不变 */
         * {
             margin: 0;
             padding: 0;
@@ -330,6 +331,11 @@
                     <input type="radio" name="api" id="api-waifu" value="https://api.waifu.im/search/?included_tags=waifu">
                     <label for="api-waifu">Waifu.im API</label>
                 </div>
+                <!-- 添加新的API源 -->
+                <div class="api-option">
+                    <input type="radio" name="api" id="api-genshin" value="https://aenews.dpdns.org/pixiv/direct?keyword=genshin&num=1&r18=1&size=original&proxy=i-cf.pximg.net">
+                    <label for="api-genshin">原神图片API (anosu.top)</label>
+                </div>
             </div>
             <button id="download-btn" class="download-btn" disabled>
                 <i class="fas fa-download"></i>
@@ -438,7 +444,7 @@
                             sourceUrl: imageUrl
                         };
                     }
-                    // 对于直接返回图片的API
+                    // 对于直接返回图片的API（包括新添加的原神API）
                     else {
                         return {
                             blob: await response.blob(),
