@@ -716,21 +716,21 @@
                     id: 'api-neko',
                     name: 'Nekos.best API',
                     url: '/proxy?target=https://nekos.best/api/v2/neko',
-                    tags: ['all-ages'],
+                    tags: ['mature'],
                     mature: false
                 },
                 {
                     id: 'api-waifu',
                     name: 'Waifu.im API',
                     url: '/proxy?target=https://api.waifu.im/search?included_tags=ass',
-                    tags: ['all-ages'],
+                    tags: ['mature'],
                     mature: false
                 },
                 {
                     id: 'api-genshin',
                     name: '随机涩图API',
                     url: 'https://api.waifu.im/search?included_tags=ass',
-                    tags: ['game', 'mature'],
+                    tags: ['mature'],
                     mature: true
                 }
             ];
@@ -802,7 +802,7 @@
                     'all-ages': '全年龄段',
                     'mature': '非全年龄段',
                     'game': '游戏主题',
-                    'default': '默认推荐'
+                    'default': '默认'
                 };
                 return tagNames[tag] || tag;
             }
