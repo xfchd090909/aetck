@@ -1,4 +1,6 @@
-# netlify.toml
+[build]
+  publish = "."
+
 [[edge_functions]]
-  path = "/image-proxy/*"  # 触发路径：所有以/image-proxy/开头的请求
-  function = "image-proxy" # 对应netlify/edge-functions下的函数文件名（无需后缀）
+  function = "proxy"
+  path = "/proxy"
