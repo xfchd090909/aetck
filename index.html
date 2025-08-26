@@ -405,6 +405,11 @@
             color: #ff6b81;
         }
         
+        .api-tag.minor-mature {
+            background-color: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+        
         .api-tag.game {
             background-color: rgba(255, 193, 7, 0.2);
             color: #ffc107;
@@ -471,6 +476,11 @@
             opacity: 1;
         }
         
+        .warning-content.minor {
+            background-color: rgba(46, 43, 15, 0.95);
+            border: 1px solid rgba(255, 193, 7, 0.5);
+        }
+        
         .warning-header {
             text-align: center;
             margin-bottom: 20px;
@@ -482,10 +492,18 @@
             margin-bottom: 15px;
         }
         
+        .warning-icon.minor {
+            color: #ffc107;
+        }
+        
         .warning-title {
             font-size: 1.5rem;
             margin-bottom: 12px;
             color: #ff6b81;
+        }
+        
+        .warning-title.minor {
+            color: #ffc107;
         }
         
         .warning-message {
@@ -520,9 +538,18 @@
             box-shadow: 0 5px 15px rgba(255, 107, 129, 0.4);
         }
         
+        .confirm-btn.minor {
+            background: linear-gradient(45deg, #ffc107, #e6ac00);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
+        }
+        
         .confirm-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(255, 107, 129, 0.6);
+        }
+        
+        .confirm-btn.minor:hover {
+            box-shadow: 0 8px 20px rgba(255, 193, 7, 0.6);
         }
         
         .cancel-btn {
@@ -652,14 +679,14 @@
     <!-- 非全年龄段警告弹窗 -->
     <div class="warning-modal" id="warning-modal">
         <div class="modal-backdrop" id="warning-backdrop"></div>
-        <div class="warning-content">
+        <div class="warning-content" id="warning-content">
             <div class="warning-header">
-                <div class="warning-icon">
+                <div class="warning-icon" id="warning-icon">
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
-                <h2 class="warning-title">内容警告</h2>
+                <h2 class="warning-title" id="warning-title">内容警告</h2>
             </div>
-            <div class="warning-message">
+            <div class="warning-message" id="warning-message">
                 因非全年龄段API开放机制，我们并不能控制及保证这些API资源的合法性，望斟酌后使用
             </div>
             <div class="warning-actions">
@@ -694,6 +721,10 @@
             const warningBackdrop = document.getElementById('warning-backdrop');
             const confirmBtn = document.getElementById('confirm-btn');
             const cancelBtn = document.getElementById('cancel-btn');
+            const warningContent = document.getElementById('warning-content');
+            const warningIcon = document.getElementById('warning-icon');
+            const warningTitle = document.getElementById('warning-title');
+            const warningMessage = document.getElementById('warning-message');
             
             // 状态变量
             let currentImageUrl = '';
@@ -702,36 +733,41 @@
             let selectedApi = 'https://www.loliapi.com/acg/';
             let selectedApiDisplayName = '默认API';
             let pendingApi = null; // 等待确认的API
+            let pendingApiType = ''; // 等待确认的API类型 (minor/mature)
             
-            // API数据 - 只保留前三个和一个非全年龄段API
+            // API数据 - 修改了标签和类型
             const apiSources = [
                 {
                     id: 'api-default',
                     name: '默认API',
                     url: 'https://www.loliapi.com/acg/',
                     tags: ['default', 'all-ages'],
-                    mature: false
+                    mature: false,
+                    matureType: null
                 },
                 {
                     id: 'api-neko',
                     name: 'Nekos.best API',
                     url: '/proxy?target=https://nekos.best/api/v2/neko',
-                    tags: ['mature'],
-                    mature: false
+                    tags: ['minor-mature'],
+                    mature: true,
+                    matureType: 'minor'
                 },
                 {
                     id: 'api-waifu',
                     name: 'Waifu.im API',
                     url: '/proxy?target=https://api.waifu.im/search?included_tags=ass',
-                    tags: ['mature'],
-                    mature: false
+                    tags: ['minor-mature'],
+                    mature: true,
+                    matureType: 'minor'
                 },
                 {
                     id: 'api-genshin',
                     name: '随机涩图API',
                     url: 'https://api.waifu.im/search?included_tags=ass',
                     tags: ['mature'],
-                    mature: true
+                    mature: true,
+                    matureType: 'mature'
                 }
             ];
             
@@ -755,6 +791,7 @@
                     card.dataset.id = api.id;
                     card.dataset.url = api.url;
                     card.dataset.name = api.name;
+                    card.dataset.matureType = api.matureType;
                     
                     card.innerHTML = `
                         <div class="api-name">
@@ -770,6 +807,7 @@
                         // 如果选择的是非全年龄段API，则显示警告
                         if (api.mature) {
                             pendingApi = api;
+                            pendingApiType = api.matureType;
                             openWarningModal();
                         } else {
                             selectApi(api);
@@ -800,7 +838,8 @@
             function getTagName(tag) {
                 const tagNames = {
                     'all-ages': '全年龄段',
-                    'mature': '非全年龄段',
+                    'mature': '非全年龄段内容',
+                    'minor-mature': '少量非全年龄段内容',
                     'game': '游戏主题',
                     'default': '默认'
                 };
@@ -821,6 +860,21 @@
             
             // 打开警告弹窗
             function openWarningModal() {
+                // 根据API类型设置不同的弹窗样式和内容
+                if (pendingApiType === 'minor') {
+                    warningContent.className = 'warning-content minor';
+                    warningIcon.className = 'warning-icon minor';
+                    warningTitle.className = 'warning-title minor';
+                    confirmBtn.className = 'warning-btn confirm-btn minor';
+                    warningMessage.textContent = '因含少量非全年龄段API半开放机制，可能含有少量不适合低年龄段图片，我们并不能控制及保证这些API资源的合法性，望斟酌后使用';
+                } else {
+                    warningContent.className = 'warning-content';
+                    warningIcon.className = 'warning-icon';
+                    warningTitle.className = 'warning-title';
+                    confirmBtn.className = 'warning-btn confirm-btn';
+                    warningMessage.textContent = '因非全年龄段API开放机制，我们并不能控制及保证这些API资源的合法性，望斟酌后使用';
+                }
+                
                 warningModal.classList.add('active');
             }
             
