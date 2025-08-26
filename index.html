@@ -703,7 +703,7 @@
             let selectedApiDisplayName = '默认API';
             let pendingApi = null; // 等待确认的API
             
-            // API数据
+            // API数据 - 只保留前三个和一个非全年龄段API
             const apiSources = [
                 {
                     id: 'api-default',
@@ -727,100 +727,9 @@
                     mature: false
                 },
                 {
-                    id: 'api-genshin-all',
-                    name: '原神图片API',
-                    url: 'https://aenews.dpdns.org/pixiv/direct?keyword=genshin&num=1&r18=0&size=original&proxy=i.pixiv.re',
-                    tags: ['game', 'all-ages'],
-                    mature: false
-                },
-                {
-                    id: 'api-bluearchive-all',
-                    name: '碧蓝档案API',
-                    url: 'https://aenews.dpdns.org/pixiv/direct?keyword=bluearchive&num=1&r18=0&size=original&proxy=i.pixiv.re',
-                    tags: ['game', 'all-ages'],
-                    mature: false
-                },
-                {
-                    id: 'api-azurlane-all',
-                    name: '碧蓝航线API',
-                    url: 'https://aenews.dpdns.org/pixiv/direct?keyword=azurlane&num=1&r18=0&size=original&proxy=i.pixiv.re',
-                    tags: ['game', 'all-ages'],
-                    mature: false
-                },
-                {
-                    id: 'api-arknights-all',
-                    name: '明日方舟API',
-                    url: 'https://aenews.dpdns.org/pixiv/direct?keyword=arknights&num=1&r18=0&size=original&proxy=i.pixiv.re',
-                    tags: ['game', 'all-ages'],
-                    mature: false
-                },
-                {
-                    id: 'api-honkai-all',
-                    name: '崩坏API',
-                    url: 'https://aenews.dpdns.org/pixiv/direct?keyword=honkai&num=1&r18=0&size=original&proxy=i.pixiv.re',
-                    tags: ['game', 'all-ages'],
-                    mature: false
-                },
-                {
-                    id: 'api-destiny-all',
-                    name: '命运API',
-                    url: 'https://aenews.dpdns.org/pixiv/direct?keyword=destiny&num=1&r18=0&size=original&proxy=i.pixiv.re',
-                    tags: ['game', 'all-ages'],
-                    mature: false
-                },
-                {
-                    id: 'api-girlsfrontline-all',
-                    name: '少女前线API',
-                    url: 'https://aenews.dpdns.org/pixiv/direct?keyword=girlsfrontline&num=1&r18=0&size=original&proxy=i.pixiv.re',
-                    tags: ['game', 'all-ages'],
-                    mature: false
-                },
-                {
                     id: 'api-genshin',
                     name: '原神图片API',
                     url: 'https://aenews.dpdns.org/pixiv/direct?keyword=genshin&num=1&r18=1&size=original&proxy=i.pixiv.re',
-                    tags: ['game', 'mature'],
-                    mature: true
-                },
-                {
-                    id: 'api-bluearchive',
-                    name: '碧蓝档案API',
-                    url: 'https://aenews.dpdns.org/pixiv/direct?keyword=bluearchive&num=1&r18=1&size=original&proxy=i.pixiv.re',
-                    tags: ['game', 'mature'],
-                    mature: true
-                },
-                {
-                    id: 'api-azurlane',
-                    name: '碧蓝航线API',
-                    url: 'https://aenews.dpdns.org/pixiv/direct?keyword=azurlane&num=1&r18=1&size=original&proxy=i.pixiv.re',
-                    tags: ['game', 'mature'],
-                    mature: true
-                },
-                {
-                    id: 'api-arknights',
-                    name: '明日方舟API',
-                    url: 'https://aenews.dpdns.org/pixiv/direct?keyword=arknights&num=1&r18=1&size=original&proxy=i.pixiv.re',
-                    tags: ['game', 'mature'],
-                    mature: true
-                },
-                {
-                    id: 'api-honkai',
-                    name: '崩坏API',
-                    url: 'https://aenews.dpdns.org/pixiv/direct?keyword=honkai&num=1&r18=1&size=original&proxy=i.pixiv.re',
-                    tags: ['game', 'mature'],
-                    mature: true
-                },
-                {
-                    id: 'api-destiny',
-                    name: '命运API',
-                    url: 'https://aenews.dpdns.org/pixiv/direct?keyword=destiny&num=1&r18=1&size=original&proxy=i.pixiv.re',
-                    tags: ['game', 'mature'],
-                    mature: true
-                },
-                {
-                    id: 'api-girlsfrontline',
-                    name: '少女前线API',
-                    url: 'https://aenews.dpdns.org/pixiv/direct?keyword=girlsfrontline&num=1&r18=1&size=original&proxy=i.pixiv.re',
                     tags: ['game', 'mature'],
                     mature: true
                 }
