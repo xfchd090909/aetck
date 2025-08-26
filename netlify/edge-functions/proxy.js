@@ -6,7 +6,7 @@ export default async (request, context) => {
     'https://www.loliapi.com',
     'https://nekos.best',
     'https://api.waifu.im',
-    'https://aenews.dpdns.org'
+    'https://aenews.dpdns.org/pixiv/direct?keyword=genshin&num=1&r18=0&size=original&proxy=i.pixiv.re'
   ];
   
   if (!target || !allowedOrigins.some(origin => target.startsWith(origin))) {
