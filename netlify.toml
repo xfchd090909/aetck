@@ -3,4 +3,4 @@
 
 [[edge_functions]]
   function = "proxy"
-  path = "netlify/edge-functions/proxy.js"
+  path = "/proxy"
