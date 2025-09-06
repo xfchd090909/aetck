@@ -91,7 +91,7 @@
       try {
         // 调用 Anosu 接口
         const response = await fetch(`${ANOSU_API}?${params.toString()}`, {
-          method: 'POST',
+          method: 'GET',
           headers: { 'Accept': 'application/json' }
         });
 
