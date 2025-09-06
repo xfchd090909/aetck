@@ -484,6 +484,9 @@
         .warning-header {
             text-align: center;
             margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .warning-icon {
@@ -560,6 +563,31 @@
         
         .cancel-btn:hover {
             background: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* 加载窗口取消按钮样式 */
+        .loading-actions {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        #cancel-loading-btn {
+            background: linear-gradient(45deg, #6c757d, #495057);
+            padding: 8px 16px;
+            border-radius: 6px;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            width: auto;
+            height: auto;
+        }
+        
+        #cancel-loading-btn:hover {
+            background: linear-gradient(45deg, #5a6268, #3d4449);
+            transform: translateY(-2px);
         }
         
         @media (max-width: 768px) {
@@ -645,6 +673,9 @@
     <div class="loading" id="loading">
         <div class="spinner"></div>
         <div style="margin-top: 10px;">正在获取图片中...</div>
+        <div class="loading-actions">
+            <button id="cancel-loading-btn">取消</button>
+        </div>
     </div>
 
     <div class="toast" id="toast">请等待图片加载完成</div>
@@ -708,6 +739,7 @@
             const fullscreenImage = document.getElementById('fullscreen-image');
             const closeFullscreen = document.getElementById('close-fullscreen');
             const imageInfo = document.getElementById('image-info');
+            const cancelLoadingBtn = document.getElementById('cancel-loading-btn');
             
             // API弹窗元素
             const apiModal = document.getElementById('api-modal');
@@ -734,6 +766,7 @@
             let selectedApiDisplayName = '默认API';
             let pendingApi = null; // 等待确认的API
             let pendingApiType = ''; // 等待确认的API类型 (minor/mature)
+            let abortController = null; // 用于取消fetch请求
             
             // API数据 - 修改了标签和类型
             const apiSources = [
@@ -892,8 +925,12 @@
             
             // 获取图片的统一方法
             async function fetchImage(url) {
+                // 创建新的AbortController用于取消请求
+                abortController = new AbortController();
+                const signal = abortController.signal;
+                
                 try {
-                    const response = await fetch(url);
+                    const response = await fetch(url, { signal });
                     
                     if (!response.ok) {
                         throw new Error(`API请求失败: ${response.status}`);
@@ -919,7 +956,7 @@
                         }
                         
                         // 获取实际的图片
-                        const imageResponse = await fetch(imageUrl);
+                        const imageResponse = await fetch(imageUrl, { signal });
                         if (!imageResponse.ok) throw new Error('图片获取失败');
                         
                         return {
@@ -935,10 +972,29 @@
                         };
                     }
                 } catch (error) {
-                    console.error('获取图片失败:', error);
-                    showToast(`错误: ${error.message || '获取图片失败'}`, 3000);
-                    throw error;
+                    if (error.name === 'AbortError') {
+                        console.log('请求已被用户取消');
+                        throw new Error('请求已取消');
+                    } else {
+                        console.error('获取图片失败:', error);
+                        showToast(`错误: ${error.message || '获取图片失败'}`, 3000);
+                        throw error;
+                    }
                 }
+            }
+            
+            // 取消图片加载
+            function cancelImageLoading() {
+                if (abortController) {
+                    abortController.abort();
+                    abortController = null;
+                }
+                
+                loadingElement.style.display = 'none';
+                isFetching = false;
+                randomBtn.disabled = false;
+                
+                showToast("图片加载已取消");
             }
             
             // 生成随机图片
@@ -989,11 +1045,15 @@
                     
                     showToast("图片加载成功！");
                 } catch (error) {
-                    console.error('图片加载失败:', error);
+                    if (error.message !== '请求已取消') {
+                        console.error('图片加载失败:', error);
+                        showToast(`加载失败: ${error.message}`, 3000);
+                    }
                 } finally {
                     loadingElement.style.display = 'none';
                     isFetching = false;
                     randomBtn.disabled = false;
+                    abortController = null;
                 }
             }
             
@@ -1053,6 +1113,9 @@
                 }
             });
             
+            // 取消加载按钮事件
+            cancelLoadingBtn.addEventListener('click', cancelImageLoading);
+            
             // API弹窗事件
             document.getElementById('toggle-api-btn').addEventListener('click', openModal);
             modalBackdrop.addEventListener('click', closeModal);
@@ -1075,6 +1138,7 @@
                     if (apiModal.classList.contains('active')) closeModal();
                     if (warningModal.classList.contains('active')) closeWarningModal();
                     if (fullscreenOverlay.classList.contains('active')) hideFullscreenImage();
+                    if (loadingElement.style.display === 'block') cancelImageLoading();
                 }
             });
         });
