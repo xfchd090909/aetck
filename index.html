@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Anosu 图片代理调用工具</title>
   <style>
+    /* 保留原有样式 */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; }
     .params { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
@@ -22,11 +23,11 @@
 <body>
   <h1>Anosu 图片代理调用工具</h1>
 
-  <!-- 参数配置区域 -->
   <div class="params">
+    <!-- 保留原有参数输入区域 -->
     <div class="param-group">
       <label for="num">图片数量：</label>
-      <input type="number" id="num" min="1" max="30" value="5" placeholder="1-30">
+      <input type="number" id="num" min="1" max="30" value="5">
     </div>
     <div class="param-group">
       <label for="r18">年龄分级：</label>
@@ -46,75 +47,82 @@
     </div>
     <div class="param-group">
       <label for="keyword">关键词：</label>
-      <input type="text" id="keyword" placeholder="多关键词用 | 分隔（如 genshin|barefoot）">
+      <input type="text" id="keyword" placeholder="多关键词用 | 分隔">
     </div>
     <div class="param-group">
       <label for="db">图库选择：</label>
       <select id="db">
-        <option value="0">新图库（2.5w张，精选）</option>
-        <option value="1">旧图库（4w张，质量参差不齐）</option>
+        <option value="0">新图库</option>
+        <option value="1">旧图库</option>
       </select>
     </div>
     <button onclick="fetchImages()">获取图片</button>
     <div id="error" class="error"></div>
   </div>
 
-  <!-- 图片展示区域 -->
   <div class="image-container" id="imageContainer"></div>
 
   <script>
-    // 1. 配置你的 Workers 代理地址（替换为你的域名）
-    const WORKER_PROXY = 'https://aenews.dpdns.org';
-    // 2. Anosu 接口地址（固定）
-    const ANOSU_API = 'https://image.anosu.top/pixiv/direct';
+    // 1. 配置Workers接口路径（用于调用Anosu接口）
+    const ANOSU_API = 'https://aenews.dpdns.org/anosu-api'; 
+    // 2. 配置Workers图片代理路径（用于加载图片）
+    const IMAGE_PROXY = 'https://aenews.dpdns.org/proxy-img'; 
 
-    /**
-     * 调用 Anosu 接口并展示图片
-     */
     async function fetchImages() {
-      // 清空之前的图片和错误提示
       const imageContainer = document.getElementById('imageContainer');
       const errorEl = document.getElementById('error');
       imageContainer.innerHTML = '';
       errorEl.textContent = '';
 
-      // 获取用户输入的参数
+      // 构建请求参数
       const params = new URLSearchParams({
         num: document.getElementById('num').value,
         r18: document.getElementById('r18').value,
         size: document.getElementById('size').value,
         keyword: document.getElementById('keyword').value || '',
         db: document.getElementById('db').value,
-        proxy: WORKER_PROXY.replace('https://', '').replace(/\/$/, '') // Anosu 的 proxy 参数不需要协议和末尾 /
+        // 传递图片代理地址给Anosu接口（确保格式正确）
+        proxy: IMAGE_PROXY.replace('https://', '') // 按Anosu要求去掉协议
       });
 
       try {
-        // 调用 Anosu 接口
+        // 调用Workers转发的Anosu接口
         const response = await fetch(`${ANOSU_API}?${params.toString()}`, {
           method: 'GET',
-          headers: { 'Accept': 'application/json' }
+          headers: { 'Accept': 'application/json' } // 明确要求JSON响应
         });
 
-        if (!response.ok) throw new Error(`接口请求失败：${response.status}`);
-        const data = await response.json();
-
-        // 处理返回结果（Anosu 成功时返回图片URL数组）
-        if (!Array.isArray(data) || data.length === 0) {
-          errorEl.textContent = '未获取到图片，请检查参数（如 num 范围1-30）';
-          return;
+        // 处理HTTP错误状态
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(`接口错误: ${errorData?.error || response.statusText}`);
         }
 
-        // 渲染图片到页面
-        data.forEach(imgUrl => {
+        // 解析JSON数据（此时应返回图片URL数组）
+        const imageUrls = await response.json();
+
+        // 验证返回格式是否正确
+        if (!Array.isArray(imageUrls) || imageUrls.length === 0) {
+          throw new Error('未获取到图片URL列表，请检查参数');
+        }
+
+        // 渲染图片（URL已通过Workers代理）
+        imageUrls.forEach(imgUrl => {
           const imgItem = document.createElement('div');
           imgItem.className = 'image-item';
-          // 使用 Workers 代理地址替换图片的原代理
-          const proxyImgUrl = imgUrl.replace(/^https?:\/\/[^\/]+\/?/, WORKER_PROXY);
-          imgItem.innerHTML = `<img src="${proxyImgUrl}" alt="Anosu 图片" loading="lazy">`;
+          // 确保图片URL正确指向Workers代理
+          imgItem.innerHTML = `<img src="${imgUrl}" alt="Anosu图片" 
+            onerror="this.src='https://picsum.photos/200/250?grayscale'">`; // 错误占位图
           imageContainer.appendChild(imgItem);
         });
+
       } catch (err) {
-        errorEl.textContent = `错误：${err.message}`;
+        // 显示错误信息（区分JSON解析错误）
+        if (err.message.includes('Unexpected token')) {
+          errorEl.textContent = '错误：接口返回非JSON数据（可能路径配置错误）';
+        } else {
+          errorEl.textContent = `错误：${err.message}`;
+        }
       }
     }
   </script>
