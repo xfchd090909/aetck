@@ -49,7 +49,7 @@ export default async (request, context) => {
     const modifiedResponse = new Response(response.body, response);
     // 统一添加跨域支持（根据实际需求可限制为特定域名，如request.headers.get('Origin')）
     modifiedResponse.headers.set('Access-Control-Allow-Origin', 'https://aetck.netlify.app');
-    modifiedResponse.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    modifiedResponse.headers.set('Access-Control-Allow-Methods', 'GET');
     modifiedResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type');
 
     if (isPixivRequest) {
