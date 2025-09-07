@@ -21,7 +21,7 @@ export default async (request, context) => {
     'https://www.loliapi.com',
     'https://nekos.best',
     'https://api.waifu.im',
-    'https://image.anosu.top',
+    'https://aenews.dpdns.org',
     'https://aetck.netlify.app'
   ];
   
