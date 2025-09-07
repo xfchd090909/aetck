@@ -2,39 +2,56 @@ export default async (request, context) => {
   const url = new URL(request.url);
   const target = url.searchParams.get('target');
   
+  // 1. 修复数组逗号语法错误
   const allowedOrigins = [
     'https://www.loliapi.com',
     'https://nekos.best',
     'https://api.waifu.im',
-    'https://image.anosu.top'
+    'https://image.anosu.top',  // 新增逗号
     'https://aetck.netlify.app'
   ];
   
+  // 2. 验证目标URL合法性
   if (!target || !allowedOrigins.some(origin => target.startsWith(origin))) {
-    return new Response('Invalid target URL', { status: 403 });
+    return new Response('Invalid target URL', { 
+      status: 403,
+      headers: { 'Access-Control-Allow-Origin': '*' }  // 统一添加CORS头
+    });
   }
 
-  // 仅对pixiv相关请求启用缓存（判断URL特征）
+  // 3. 缓存逻辑（新增CORS处理）
   const isPixivRequest = target.includes('pixiv/direct');
   const cacheKey = isPixivRequest ? `__proxy_cache__${target}` : null;
-
-  // 尝试从缓存获取
+  
   if (cacheKey) {
     const cachedResponse = await context.cache.get(cacheKey);
     if (cachedResponse) {
-      return cachedResponse; // 直接返回缓存结果
+      // 给缓存响应添加CORS头后返回
+      const cachedWithCORS = new Response(cachedResponse.body, cachedResponse);
+      cachedWithCORS.headers.set('Access-Control-Allow-Origin', '*');
+      return cachedWithCORS;
     }
   }
 
   try {
-    // 10秒超时控制（避免长期挂起）
+    // 4. 10秒超时控制 + fetch错误处理
     const response = await Promise.race([
       fetch(target),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
     ]);
 
-    // 复制响应并添加缓存头（对pixiv请求设置合理缓存时间）
+    // 检查fetch是否返回成功状态（200-299）
+    if (!response.ok) {
+      throw new Error(`Target server responded with ${response.status}`);
+    }
+
+    // 5. 复制响应并添加缓存头 + CORS头
     const modifiedResponse = new Response(response.body, response);
+    // 统一添加跨域支持（根据实际需求可限制为特定域名，如request.headers.get('Origin')）
+    modifiedResponse.headers.set('Access-Control-Allow-Origin', 'https://aetck.netlify.app');
+    modifiedResponse.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    modifiedResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+
     if (isPixivRequest) {
       modifiedResponse.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
       // 存入Netlify边缘缓存（1小时有效期）
@@ -42,8 +59,16 @@ export default async (request, context) => {
     }
 
     return modifiedResponse;
+
   } catch (error) {
-    return new Response(`Proxy failed: ${error.message}`, { status: 500 });
+    // 6. 错误响应统一添加CORS头
+    return new Response(`Proxy failed: ${error.message}`, { 
+      status: 500,
+      headers: { 
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'text/plain'
+      }
+    });
   }
 };
 
