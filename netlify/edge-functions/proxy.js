@@ -6,7 +6,7 @@ export default async (request, context) => {
     'https://www.loliapi.com',
     'https://nekos.best',
     'https://api.waifu.im',
-    'https://aenews.dpdns.org'
+    'https://image.anosu.top'
   ];
   
   if (!target || !allowedOrigins.some(origin => target.startsWith(origin))) {
