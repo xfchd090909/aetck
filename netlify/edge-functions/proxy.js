@@ -15,7 +15,7 @@ export default async (request, context) => {
   if (!target || !allowedOrigins.some(origin => target.startsWith(origin))) {
     return new Response('Invalid target URL', { 
       status: 403,
-      headers: { 'Access-Control-Allow-Origin': '*' }  // 统一添加CORS头
+      headers: { 'Access-Control-Allow-Origin': 'https://aetck.netlify.app' }  // 统一添加CORS头
     });
   }
 
@@ -65,7 +65,7 @@ export default async (request, context) => {
     return new Response(`Proxy failed: ${error.message}`, { 
       status: 500,
       headers: { 
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': 'https://aetck.netlify.app',
         'Content-Type': 'text/plain'
       }
     });
