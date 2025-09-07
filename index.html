@@ -797,7 +797,7 @@
                 {
                     id: 'api-genshin',
                     name: '原神随机图片',
-                    url: '/proxy?target=https://aenews.dpdns.org/pixiv/json?keyword=genshin&r18=1',
+                    url: 'https://aenews.dpdns.org/pixiv/json?keyword=genshin&r18=1',
                     tags: ['mature'],
                     mature: true,
                     matureType: 'mature'
@@ -948,7 +948,7 @@
                     if (url.includes('nekos.best') || 
                         url.includes('waifu.im') || 
                         url.includes('nekosapi.com') || 
-                        url.includes('aenews.dpdns.org') ||
+                        url.includes('image.anosu.top') ||
                         url.includes('nekobot.xyz')) {
                         
                         const data = await response.json();
@@ -960,7 +960,7 @@
                             imageUrl = data.images[0].url;
                         } else if (url.includes('nekosapi.com')) {
                             imageUrl = data.data.attributes.file;
-                        } else if (url.includes('aenews.dpdns.org')) {
+                        } else if (url.includes('image.anosu.top')) {
                             imageUrl = data[0]?.url;
                         } else if (url.includes('nekobot.xyz')) {
                             imageUrl = data.message;
