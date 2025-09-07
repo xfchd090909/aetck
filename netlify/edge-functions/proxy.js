@@ -1,13 +1,27 @@
 export default async (request, context) => {
+  // 第一步：优先处理OPTIONS预请求
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204, // 预请求成功无需返回内容，204 No Content最佳
+      headers: {
+        'Access-Control-Allow-Origin': 'https://aetck.netlify.app', // 与实际请求一致
+        'Access-Control-Allow-Methods': 'GET, OPTIONS', // 允许的方法（包含OPTIONS和实际请求的GET）
+        'Access-Control-Allow-Headers': 'Content-Type, Origin, Referer', // 允许前端可能携带的头
+        'Access-Control-Max-Age': '86400', // 预检结果缓存24小时，减少重复请求
+        'Vary': 'Origin' // 告诉CDN根据Origin头缓存不同响应
+      }
+    });
+  }
+  
+  // 1. 修复数组逗号语法错误
   const url = new URL(request.url);
   const target = url.searchParams.get('target');
   
-  // 1. 修复数组逗号语法错误
   const allowedOrigins = [
     'https://www.loliapi.com',
     'https://nekos.best',
     'https://api.waifu.im',
-    'https://image.anosu.top',  // 新增逗号
+    'https://image.anosu.top',
     'https://aetck.netlify.app'
   ];
   
@@ -15,7 +29,11 @@ export default async (request, context) => {
   if (!target || !allowedOrigins.some(origin => target.startsWith(origin))) {
     return new Response('Invalid target URL', { 
       status: 403,
-      headers: { 'Access-Control-Allow-Origin': 'https://aetck.netlify.app' }  // 统一添加CORS头
+      headers: { 
+        'Access-Control-Allow-Origin': 'https://aetck.netlify.app',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Vary': 'Origin'
+      } 
     });
   }
 
@@ -47,10 +65,10 @@ export default async (request, context) => {
 
     // 5. 复制响应并添加缓存头 + CORS头
     const modifiedResponse = new Response(response.body, response);
-    // 统一添加跨域支持（根据实际需求可限制为特定域名，如request.headers.get('Origin')）
     modifiedResponse.headers.set('Access-Control-Allow-Origin', 'https://aetck.netlify.app');
-    modifiedResponse.headers.set('Access-Control-Allow-Methods', 'GET');
-    modifiedResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+    modifiedResponse.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    modifiedResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Origin, Referer');
+    modifiedResponse.headers.set('Vary', 'Origin'); // 关键：解决CDN缓存导致的跨域问题
 
     if (isPixivRequest) {
       modifiedResponse.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
