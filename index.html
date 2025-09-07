@@ -961,7 +961,7 @@
                         } else if (url.includes('nekosapi.com')) {
                             imageUrl = data.data.attributes.file;
                         } else if (url.includes('image.anosu.top')) {
-                            imageUrl = data.data.url; // 假设API返回格式为 {data: {url: "图片地址"}}
+                            imageUrl = data[0]?.url;
                         } else if (url.includes('nekobot.xyz')) {
                             imageUrl = data.message;
                         }
