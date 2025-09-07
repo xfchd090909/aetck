@@ -768,7 +768,7 @@
             let pendingApiType = ''; // 等待确认的API类型 (minor/mature)
             let abortController = null; // 用于取消fetch请求
             
-            // API数据 - 修改了标签和类型
+            // API数据 - 添加了原神随机图片API
             const apiSources = [
                 {
                     id: 'api-default',
@@ -796,6 +796,14 @@
                 },
                 {
                     id: 'api-genshin',
+                    name: '原神随机图片',
+                    url: 'https://image.anosu.top/pixiv/json?keyword=genshin&r18=1',
+                    tags: ['mature'],
+                    mature: true,
+                    matureType: 'mature'
+                },
+                {
+                    id: 'api-mature',
                     name: '随机涩图API',
                     url: '/proxy?target=https://api.waifu.im/search?included_tags=ass',
                     tags: ['mature'],
@@ -940,6 +948,7 @@
                     if (url.includes('nekos.best') || 
                         url.includes('waifu.im') || 
                         url.includes('nekosapi.com') || 
+                        url.includes('image.anosu.top') ||
                         url.includes('nekobot.xyz')) {
                         
                         const data = await response.json();
@@ -951,6 +960,8 @@
                             imageUrl = data.images[0].url;
                         } else if (url.includes('nekosapi.com')) {
                             imageUrl = data.data.attributes.file;
+                        } else if (url.includes('image.anosu.top')) {
+                            imageUrl = data.data.url; // 假设API返回格式为 {data: {url: "图片地址"}}
                         } else if (url.includes('nekobot.xyz')) {
                             imageUrl = data.message;
                         }
