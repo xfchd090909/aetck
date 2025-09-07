@@ -46,7 +46,7 @@ export default async (request, context) => {
     if (cachedResponse) {
       // 给缓存响应添加CORS头后返回
       const cachedWithCORS = new Response(cachedResponse.body, cachedResponse);
-      cachedWithCORS.headers.set('Access-Control-Allow-Origin', '*');
+      cachedWithCORS.headers.set('Access-Control-Allow-Origin', 'https://aetck.netlify.app');
       return cachedWithCORS;
     }
   }
