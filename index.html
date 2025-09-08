@@ -420,6 +420,11 @@
             color: #9c88ff;
         }
         
+        .api-tag.external {
+            background-color: rgba(255, 107, 129, 0.2);
+            color: #ff6b81;
+        }
+        
         .api-divider {
             height: 1px;
             background-color: rgba(255, 255, 255, 0.1);
@@ -832,7 +837,7 @@
                 <h2 class="info-title">温馨提示</h2>
             </div>
             <div class="info-message" id="info-message">
-                由于部分Api的开放、技术及效率问题，我们在2025年9月8日改变使用方式，网站内带"外链"的Api均使用用户标签页打开这些Api
+                由于部分Api的开放、技术及效率问题，我们在2025年9月8日改变使用方式，网站内带"外链"的Api将在您点击随机图片按钮时在新标签页打开
             </div>
             <div class="info-actions">
                 <button class="info-btn" id="info-confirm-btn">我知道了</button>
@@ -883,6 +888,7 @@
             let isFetching = false;
             let selectedApi = 'https://www.loliapi.com/acg/';
             let selectedApiDisplayName = '默认API';
+            let selectedApiIsExternal = false;
             let pendingApi = null; // 等待确认的API
             let pendingApiType = ''; // 等待确认的API类型 (minor/mature)
             let abortController = null; // 用于取消fetch请求
@@ -895,7 +901,8 @@
                     url: 'https://www.loliapi.com/acg/',
                     tags: ['default', 'all-ages'],
                     mature: false,
-                    matureType: null
+                    matureType: null,
+                    external: false
                 },
                 {
                     id: 'api-neko',
@@ -903,7 +910,8 @@
                     url: '/proxy?target=https://nekos.best/api/v2/neko',
                     tags: ['minor-mature'],
                     mature: true,
-                    matureType: 'minor'
+                    matureType: 'minor',
+                    external: false
                 },
                 {
                     id: 'api-waifu',
@@ -911,7 +919,8 @@
                     url: '/proxy?target=https://api.waifu.im/search?included_tags=waifu',
                     tags: ['minor-mature'],
                     mature: true,
-                    matureType: 'minor'
+                    matureType: 'minor',
+                    external: false
                 },
                 {
                     id: 'api-mature',
@@ -919,7 +928,8 @@
                     url: '/proxy?target=https://api.waifu.im/search?included_tags=ass',
                     tags: ['mature'],
                     mature: true,
-                    matureType: 'mature'
+                    matureType: 'mature',
+                    external: false
                 },
                 {
                     id: 'api-genshin',
@@ -998,7 +1008,7 @@
                     card.dataset.url = api.url;
                     card.dataset.name = api.name;
                     card.dataset.matureType = api.matureType;
-                    card.dataset.external = api.external || false;
+                    card.dataset.external = api.external;
                     
                     card.innerHTML = `
                         <div class="api-name">
@@ -1012,13 +1022,6 @@
                     `;
                     
                     card.addEventListener('click', () => {
-                        // 如果选择的是外链API，则在新标签页打开
-                        if (api.external) {
-                            window.open(api.url, '_blank');
-                            showToast("外链API已在新标签页打开");
-                            return;
-                        }
-                        
                         // 如果选择的是非全年龄段API，则显示警告
                         if (api.mature) {
                             pendingApi = api;
@@ -1044,6 +1047,7 @@
                 
                 selectedApi = api.url;
                 selectedApiDisplayName = api.name;
+                selectedApiIsExternal = api.external;
                 selectedApiName.textContent = `${api.name}`;
                 
                 showToast(`已选择: ${api.name}`);
@@ -1079,15 +1083,15 @@
                     warningContent.classList.add('minor');
                     warningIcon.classList.add('minor');
                     warningTitle.classList.add('minor');
-                    warningTitle.textContent = '轻微内容警告';
-                    warningMessage.textContent = '此API可能包含轻微成人内容，是否继续使用？';
+                    warningTitle.textContent = '少量非全年龄段内容警告';
+                    warningMessage.textContent = '因含少量非全年龄段API半开放机制，可能含有少量不适合低年龄段图片，我们并不能控制及保证这些API资源的合法性，望斟酌后使用';
                     confirmBtn.classList.add('minor');
                 } else {
                     warningContent.classList.remove('minor');
                     warningIcon.classList.remove('minor');
                     warningTitle.classList.remove('minor');
-                    warningTitle.textContent = '内容警告';
-                    warningMessage.textContent = '此API可能包含成人内容，是否继续使用？';
+                    warningTitle.textContent = '非全年龄段内容警告';
+                    warningMessage.textContent = '因非全年龄段API开放机制，我们并不能控制及保证这些API资源的合法性，望斟酌后使用';
                     confirmBtn.classList.remove('minor');
                 }
                 
@@ -1138,6 +1142,13 @@
             // 获取随机图片
             async function fetchRandomImage() {
                 if (isFetching) return;
+                
+                // 如果是外链API，直接在新标签页打开
+                if (selectedApiIsExternal) {
+                    window.open(selectedApi, '_blank');
+                    showToast('外链API已在新标签页打开');
+                    return;
+                }
                 
                 showLoading();
                 abortController = new AbortController();
