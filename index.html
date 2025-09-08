@@ -590,6 +590,100 @@
             transform: translateY(-2px);
         }
         
+        /* 信息弹窗样式 */
+        .info-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        
+        .info-modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .info-content {
+            position: relative;
+            background-color: rgba(26, 35, 46, 0.95);
+            border-radius: 18px;
+            width: 95%;
+            max-width: 500px;
+            padding: 25px 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+            z-index: 2;
+            transform: translateY(40px) scale(0.95);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(30, 144, 255, 0.3);
+        }
+        
+        .info-modal.active .info-content {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+        
+        .info-header {
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .info-icon {
+            font-size: 2.8rem;
+            color: #1e90ff;
+            margin-bottom: 15px;
+        }
+        
+        .info-title {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            color: #1e90ff;
+        }
+        
+        .info-message {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: rgba(255, 255, 255, 0.9);
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 12px;
+        }
+        
+        .info-actions {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .info-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
+            background: linear-gradient(45deg, #1e90ff, #3742fa);
+            color: white;
+            box-shadow: 0 5px 15px rgba(30, 144, 255, 0.4);
+        }
+        
+        .info-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(30, 144, 255, 0.6);
+        }
+        
         @media (max-width: 768px) {
             .button-group {
                 max-width: 100%;
@@ -602,7 +696,7 @@
                 font-size: 0.9rem;
             }
             
-            .modal-content, .warning-content {
+            .modal-content, .warning-content, .info-content {
                 width: 95%;
                 max-width: 95%;
             }
@@ -726,6 +820,25 @@
             </div>
         </div>
     </div>
+    
+    <!-- 信息弹窗 -->
+    <div class="info-modal" id="info-modal">
+        <div class="modal-backdrop" id="info-backdrop"></div>
+        <div class="info-content" id="info-content">
+            <div class="info-header">
+                <div class="info-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <h2 class="info-title">温馨提示</h2>
+            </div>
+            <div class="info-message" id="info-message">
+                由于部分Api的开放、技术及效率问题，我们在2025年9月8日改变使用方式，网站内带"外链"的Api均使用用户标签页打开这些Api
+            </div>
+            <div class="info-actions">
+                <button class="info-btn" id="info-confirm-btn">我知道了</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -758,6 +871,12 @@
             const warningTitle = document.getElementById('warning-title');
             const warningMessage = document.getElementById('warning-message');
             
+            // 信息弹窗元素
+            const infoModal = document.getElementById('info-modal');
+            const infoBackdrop = document.getElementById('info-backdrop');
+            const infoConfirmBtn = document.getElementById('info-confirm-btn');
+            const infoMessage = document.getElementById('info-message');
+            
             // 状态变量
             let currentImageUrl = '';
             let currentImageBlob = null;
@@ -768,7 +887,7 @@
             let pendingApiType = ''; // 等待确认的API类型 (minor/mature)
             let abortController = null; // 用于取消fetch请求
             
-            // API数据 - 添加了原神随机图片API
+            // API数据 - 添加了新的API
             const apiSources = [
                 {
                     id: 'api-default',
@@ -808,8 +927,45 @@
                     url: 'https://image.anosu.top/pixiv/direct?r18=1&keyword=genshinimpact',
                     tags: ['mature'],
                     mature: true,
-                    matureType: 'mature'
+                    matureType: 'mature',
+                    external: true
                 },
+                {
+                    id: 'api-azurlane',
+                    name: '外链-碧蓝航线',
+                    url: 'https://image.anosu.top/pixiv/direct?r18=1&keyword=azurlane',
+                    tags: ['mature'],
+                    mature: true,
+                    matureType: 'mature',
+                    external: true
+                },
+                {
+                    id: 'api-bluearchive',
+                    name: '外链-碧蓝档案',
+                    url: 'https://image.anosu.top/pixiv/direct?r18=1&keyword=bluearchive',
+                    tags: ['mature'],
+                    mature: true,
+                    matureType: 'mature',
+                    external: true
+                },
+                {
+                    id: 'api-arknights',
+                    name: '外链-明日方舟',
+                    url: 'https://image.anosu.top/pixiv/direct?r18=1&keyword=arknights',
+                    tags: ['mature'],
+                    mature: true,
+                    matureType: 'mature',
+                    external: true
+                },
+                {
+                    id: 'api-honkai',
+                    name: '外链-崩坏',
+                    url: 'https://image.anosu.top/pixiv/direct?r18=1&keyword=honkai',
+                    tags: ['mature'],
+                    mature: true,
+                    matureType: 'mature',
+                    external: true
+                }
             ];
             
             // 初始化
@@ -820,6 +976,15 @@
                 
                 // 初始背景
                 document.body.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)';
+                
+                // 检查是否已经显示过信息弹窗
+                const hasSeenInfo = localStorage.getItem('hasSeenApiInfo20250908');
+                if (!hasSeenInfo) {
+                    // 显示信息弹窗
+                    openInfoModal();
+                    // 设置标记，表示已经显示过
+                    localStorage.setItem('hasSeenApiInfo20250908', 'true');
+                }
             }
             
             // 渲染API选择网格
@@ -833,6 +998,7 @@
                     card.dataset.url = api.url;
                     card.dataset.name = api.name;
                     card.dataset.matureType = api.matureType;
+                    card.dataset.external = api.external || false;
                     
                     card.innerHTML = `
                         <div class="api-name">
@@ -841,10 +1007,18 @@
                         </div>
                         <div class="api-tags">
                             ${api.tags.map(tag => `<span class="api-tag ${tag}">${getTagName(tag)}</span>`).join('')}
+                            ${api.external ? '<span class="api-tag external">外链</span>' : ''}
                         </div>
                     `;
                     
                     card.addEventListener('click', () => {
+                        // 如果选择的是外链API，则在新标签页打开
+                        if (api.external) {
+                            window.open(api.url, '_blank');
+                            showToast("外链API已在新标签页打开");
+                            return;
+                        }
+                        
                         // 如果选择的是非全年龄段API，则显示警告
                         if (api.mature) {
                             pendingApi = api;
@@ -880,40 +1054,41 @@
                 const tagNames = {
                     'all-ages': '全年龄段',
                     'mature': '非全年龄段内容',
-                    'minor-mature': '少量非全年龄段内容',
-                    'game': '游戏主题',
-                    'default': '默认'
+                    'minor-mature': '轻微内容',
+                    'game': '游戏相关',
+                    'default': '默认',
+                    'external': '外链'
                 };
+                
                 return tagNames[tag] || tag;
             }
             
-            // 打开API弹窗
-            function openModal() {
-                apiModal.classList.add('active');
-                document.body.style.overflow = 'hidden';
+            // 显示信息弹窗
+            function openInfoModal() {
+                infoModal.classList.add('active');
             }
             
-            // 关闭API弹窗
-            function closeModal() {
-                apiModal.classList.remove('active');
-                document.body.style.overflow = '';
+            // 关闭信息弹窗
+            function closeInfoModal() {
+                infoModal.classList.remove('active');
             }
             
-            // 打开警告弹窗
+            // 显示警告弹窗
             function openWarningModal() {
-                // 根据API类型设置不同的弹窗样式和内容
                 if (pendingApiType === 'minor') {
-                    warningContent.className = 'warning-content minor';
-                    warningIcon.className = 'warning-icon minor';
-                    warningTitle.className = 'warning-title minor';
-                    confirmBtn.className = 'warning-btn confirm-btn minor';
-                    warningMessage.textContent = '因含少量非全年龄段API半开放机制，可能含有少量不适合低年龄段图片，我们并不能控制及保证这些API资源的合法性，望斟酌后使用';
+                    warningContent.classList.add('minor');
+                    warningIcon.classList.add('minor');
+                    warningTitle.classList.add('minor');
+                    warningTitle.textContent = '轻微内容警告';
+                    warningMessage.textContent = '此API可能包含轻微成人内容，是否继续使用？';
+                    confirmBtn.classList.add('minor');
                 } else {
-                    warningContent.className = 'warning-content';
-                    warningIcon.className = 'warning-icon';
-                    warningTitle.className = 'warning-title';
-                    confirmBtn.className = 'warning-btn confirm-btn';
-                    warningMessage.textContent = '因非全年龄段API开放机制，我们并不能控制及保证这些API资源的合法性，望斟酌后使用';
+                    warningContent.classList.remove('minor');
+                    warningIcon.classList.remove('minor');
+                    warningTitle.classList.remove('minor');
+                    warningTitle.textContent = '内容警告';
+                    warningMessage.textContent = '此API可能包含成人内容，是否继续使用？';
+                    confirmBtn.classList.remove('minor');
                 }
                 
                 warningModal.classList.add('active');
@@ -924,232 +1099,165 @@
                 warningModal.classList.remove('active');
             }
             
-            // 显示通知
-            function showToast(message, duration = 1500) {
+            // 打开API选择弹窗
+            function openModal() {
+                apiModal.classList.add('active');
+            }
+            
+            // 关闭API选择弹窗
+            function closeModal() {
+                apiModal.classList.remove('active');
+            }
+            
+            // 显示Toast提示
+            function showToast(message) {
                 toastElement.textContent = message;
                 toastElement.classList.add('show');
-                setTimeout(() => toastElement.classList.remove('show'), duration);
+                
+                setTimeout(() => {
+                    toastElement.classList.remove('show');
+                }, 3000);
             }
             
-            // 获取图片的统一方法
-            async function fetchImage(url) {
-                // 创建新的AbortController用于取消请求
-                abortController = new AbortController();
-                const signal = abortController.signal;
-                
-                try {
-                    const response = await fetch(url, { signal });
-                    
-                    if (!response.ok) {
-                        throw new Error(`API请求失败: ${response.status}`);
-                    }
-                    
-                    // 对于返回JSON的API
-                    if (url.includes('nekos.best') || 
-                        url.includes('waifu.im') || 
-                        url.includes('nekosapi.com') || 
-                        url.includes('127.0.0.1') ||
-                        url.includes('nekobot.xyz')) {
-                        
-                        const data = await response.json();
-                        let imageUrl;
-                        
-                        if (url.includes('nekos.best')) {
-                            imageUrl = data.results[0].url;
-                        } else if (url.includes('waifu.im')) {
-                            imageUrl = data.images[0].url;
-                        } else if (url.includes('nekosapi.com')) {
-                            imageUrl = data.data.attributes.file;
-                        } else if (url.includes('127.0.0.1')) {
-                            imageUrl = data[0]?.url;
-                        } else if (url.includes('nekobot.xyz')) {
-                            imageUrl = data.message;
-                        }
-                        
-                        // 获取实际的图片
-                        const imageResponse = await fetch(imageUrl, { signal });
-                        if (!imageResponse.ok) throw new Error('图片获取失败');
-                        
-                        return {
-                            blob: await imageResponse.blob(),
-                            sourceUrl: imageUrl
-                        };
-                    }
-                    // 对于直接返回图片的API
-                    else {
-                        return {
-                            blob: await response.blob(),
-                            sourceUrl: url
-                        };
-                    }
-                } catch (error) {
-                    if (error.name === 'AbortError') {
-                        console.log('请求已被用户取消');
-                        throw new Error('请求已取消');
-                    } else {
-                        console.error('获取图片失败:', error);
-                        showToast(`错误: ${error.message || '获取图片失败'}`, 3000);
-                        throw error;
-                    }
-                }
-            }
-            
-            // 取消图片加载
-            function cancelImageLoading() {
-                if (abortController) {
-                    abortController.abort();
-                    abortController = null;
-                }
-                
-                loadingElement.style.display = 'none';
-                isFetching = false;
-                randomBtn.disabled = false;
-                
-                showToast("图片加载已取消");
-            }
-            
-            // 生成随机图片
-            async function generateRandomImage() {
-                if (isFetching) {
-                    showToast("请等待当前图片加载完成");
-                    return;
-                }
-                
+            // 显示加载状态
+            function showLoading() {
+                loadingElement.style.display = 'block';
                 isFetching = true;
-                randomBtn.disabled = true;
                 downloadBtn.disabled = true;
                 fullscreenBtn.disabled = true;
-                loadingElement.style.display = 'block';
+            }
+            
+            // 隐藏加载状态
+            function hideLoading() {
+                loadingElement.style.display = 'none';
+                isFetching = false;
+                downloadBtn.disabled = false;
+                fullscreenBtn.disabled = false;
+            }
+            
+            // 获取随机图片
+            async function fetchRandomImage() {
+                if (isFetching) return;
+                
+                showLoading();
+                abortController = new AbortController();
                 
                 try {
-                    const timestamp = new Date().getTime();
-                    let apiUrl = selectedApi;
+                    const response = await fetch(selectedApi, {
+                        signal: abortController.signal
+                    });
                     
-                    // 为API添加时间戳防止缓存
-                    if (apiUrl.includes('?')) {
-                        apiUrl += `&timestamp=${timestamp}`;
-                    } else {
-                        apiUrl += `?timestamp=${timestamp}`;
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     
-                    // 获取图片数据
-                    const { blob, sourceUrl } = await fetchImage(apiUrl);
-                    
-                    // 释放之前的URL
-                    if (currentImageUrl) {
-                        URL.revokeObjectURL(currentImageUrl);
-                    }
-                    
-                    // 创建新的对象URL
-                    currentImageUrl = URL.createObjectURL(blob);
+                    const blob = await response.blob();
                     currentImageBlob = blob;
+                    currentImageUrl = URL.createObjectURL(blob);
                     
-                    // 设置背景图片
+                    // 设置背景
                     document.body.style.backgroundImage = `url(${currentImageUrl})`;
                     
-                    // 更新图片信息
-                    imageInfo.textContent = `图片来源: ${new URL(sourceUrl).hostname}`;
+                    // 设置全屏图片
+                    fullscreenImage.src = currentImageUrl;
                     
-                    // 启用按钮
-                    downloadBtn.disabled = false;
-                    fullscreenBtn.disabled = false;
-                    
-                    showToast("图片加载成功！");
+                    hideLoading();
+                    showToast('图片加载成功');
                 } catch (error) {
-                    if (error.message !== '请求已取消') {
-                        console.error('图片加载失败:', error);
-                        showToast(`加载失败: ${error.message}`, 3000);
+                    if (error.name === 'AbortError') {
+                        showToast('请求已取消');
+                    } else {
+                        console.error('获取图片失败:', error);
+                        showToast('获取图片失败，请重试');
                     }
-                } finally {
-                    loadingElement.style.display = 'none';
-                    isFetching = false;
-                    randomBtn.disabled = false;
-                    abortController = null;
+                    hideLoading();
                 }
             }
             
             // 下载图片
             function downloadImage() {
-                if (!currentImageUrl || !currentImageBlob) {
-                    showToast("没有可下载的图片");
-                    return;
-                }
+                if (!currentImageBlob) return;
                 
-                try {
-                    // 创建下载链接
-                    const link = document.createElement('a');
-                    link.href = currentImageUrl;
-                    
-                    // 根据blob类型设置文件名
-                    const fileExtension = currentImageBlob.type.split('/')[1] || 'jpg';
-                    link.download = `anime-image-${new Date().getTime()}.${fileExtension}`;
-                    
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    showToast("图片下载开始...");
-                } catch (error) {
-                    console.error('下载失败:', error);
-                    showToast("下载失败: " + error.message);
-                }
+                const a = document.createElement('a');
+                a.href = currentImageUrl;
+                a.download = `random-image-${Date.now()}.jpg`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                showToast('图片已开始下载');
             }
             
-            // 全屏查看
-            function showFullscreenImage() {
-                if (!currentImageUrl) {
-                    showToast("没有可显示的图片");
-                    return;
-                }
+            // 打开全屏查看
+            function openFullscreen() {
+                if (!currentImageUrl) return;
                 
-                fullscreenImage.src = currentImageUrl;
                 fullscreenOverlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
+                imageInfo.textContent = `API来源: ${selectedApiDisplayName}`;
             }
             
-            // 关闭全屏
-            function hideFullscreenImage() {
+            // 关闭全屏查看
+            function closeFullscreenView() {
                 fullscreenOverlay.classList.remove('active');
-                document.body.style.overflow = '';
             }
             
             // 事件监听
-            randomBtn.addEventListener('click', generateRandomImage);
-            downloadBtn.addEventListener('click', downloadImage);
-            fullscreenBtn.addEventListener('click', showFullscreenImage);
-            closeFullscreen.addEventListener('click', hideFullscreenImage);
-            fullscreenOverlay.addEventListener('click', function(e) {
-                if (e.target === fullscreenOverlay) {
-                    hideFullscreenImage();
-                }
-            });
+            randomBtn.addEventListener('click', fetchRandomImage);
             
-            // 取消加载按钮事件
-            cancelLoadingBtn.addEventListener('click', cancelImageLoading);
-            
-            // API弹窗事件
             document.getElementById('toggle-api-btn').addEventListener('click', openModal);
+            
+            downloadBtn.addEventListener('click', downloadImage);
+            
+            fullscreenBtn.addEventListener('click', openFullscreen);
+            
+            closeFullscreen.addEventListener('click', closeFullscreenView);
+            
             modalBackdrop.addEventListener('click', closeModal);
+            
             modalClose.addEventListener('click', closeModal);
             
-            // 警告弹窗事件
             warningBackdrop.addEventListener('click', closeWarningModal);
-            confirmBtn.addEventListener('click', function() {
+            
+            confirmBtn.addEventListener('click', () => {
                 if (pendingApi) {
                     selectApi(pendingApi);
                     closeWarningModal();
                     closeModal();
                 }
             });
-            cancelBtn.addEventListener('click', closeWarningModal);
             
-            // 按ESC关闭弹窗
+            cancelBtn.addEventListener('click', () => {
+                pendingApi = null;
+                closeWarningModal();
+            });
+            
+            infoBackdrop.addEventListener('click', closeInfoModal);
+            
+            infoConfirmBtn.addEventListener('click', closeInfoModal);
+            
+            cancelLoadingBtn.addEventListener('click', () => {
+                if (abortController) {
+                    abortController.abort();
+                }
+                hideLoading();
+            });
+            
+            // 键盘快捷键
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
-                    if (apiModal.classList.contains('active')) closeModal();
-                    if (warningModal.classList.contains('active')) closeWarningModal();
-                    if (fullscreenOverlay.classList.contains('active')) hideFullscreenImage();
-                    if (loadingElement.style.display === 'block') cancelImageLoading();
+                    if (fullscreenOverlay.classList.contains('active')) {
+                        closeFullscreenView();
+                    } else if (apiModal.classList.contains('active')) {
+                        closeModal();
+                    } else if (warningModal.classList.contains('active')) {
+                        closeWarningModal();
+                    } else if (infoModal.classList.contains('active')) {
+                        closeInfoModal();
+                    }
+                }
+                
+                if (e.key === 'r' || e.key === 'R') {
+                    fetchRandomImage();
                 }
             });
         });
