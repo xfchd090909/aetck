@@ -385,6 +385,7 @@
             gap: 8px;
             flex-wrap: wrap;
             margin-top: 12px;
+            justify-content: center;
         }
         
         .api-tag {
@@ -609,6 +610,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.4s ease;
+            font-family: 'Arial', sans-serif;
         }
         
         .info-modal.active {
@@ -902,7 +904,8 @@
                     tags: ['default', 'all-ages'],
                     mature: false,
                     matureType: null,
-                    external: false
+                    external: false,
+                    jsonApi: false
                 },
                 {
                     id: 'api-neko',
@@ -911,7 +914,9 @@
                     tags: ['minor-mature'],
                     mature: true,
                     matureType: 'minor',
-                    external: false
+                    external: false,
+                    jsonApi: true,
+                    jsonImagePath: 'results[0].url'
                 },
                 {
                     id: 'api-waifu',
@@ -920,7 +925,9 @@
                     tags: ['minor-mature'],
                     mature: true,
                     matureType: 'minor',
-                    external: false
+                    external: false,
+                    jsonApi: true,
+                    jsonImagePath: 'images[0].url'
                 },
                 {
                     id: 'api-mature',
@@ -929,7 +936,9 @@
                     tags: ['mature'],
                     mature: true,
                     matureType: 'mature',
-                    external: false
+                    external: false,
+                    jsonApi: true,
+                    jsonImagePath: 'images[0].url'
                 },
                 {
                     id: 'api-genshin',
@@ -938,7 +947,8 @@
                     tags: ['mature'],
                     mature: true,
                     matureType: 'mature',
-                    external: true
+                    external: true,
+                    jsonApi: false
                 },
                 {
                     id: 'api-azurlane',
@@ -947,7 +957,8 @@
                     tags: ['mature'],
                     mature: true,
                     matureType: 'mature',
-                    external: true
+                    external: true,
+                    jsonApi: false
                 },
                 {
                     id: 'api-bluearchive',
@@ -956,7 +967,8 @@
                     tags: ['mature'],
                     mature: true,
                     matureType: 'mature',
-                    external: true
+                    external: true,
+                    jsonApi: false
                 },
                 {
                     id: 'api-arknights',
@@ -965,7 +977,8 @@
                     tags: ['mature'],
                     mature: true,
                     matureType: 'mature',
-                    external: true
+                    external: true,
+                    jsonApi: false
                 },
                 {
                     id: 'api-honkai',
@@ -974,7 +987,8 @@
                     tags: ['mature'],
                     mature: true,
                     matureType: 'mature',
-                    external: true
+                    external: true,
+                    jsonApi: false
                 }
             ];
             
@@ -1009,6 +1023,10 @@
                     card.dataset.name = api.name;
                     card.dataset.matureType = api.matureType;
                     card.dataset.external = api.external;
+                    card.dataset.jsonApi = api.jsonApi;
+                    if (api.jsonApi) {
+                        card.dataset.jsonImagePath = api.jsonImagePath;
+                    }
                     
                     card.innerHTML = `
                         <div class="api-name">
@@ -1018,6 +1036,7 @@
                         <div class="api-tags">
                             ${api.tags.map(tag => `<span class="api-tag ${tag}">${getTagName(tag)}</span>`).join('')}
                             ${api.external ? '<span class="api-tag external">外链</span>' : ''}
+                            ${api.jsonApi ? '<span class="api-tag">JSON API</span>' : ''}
                         </div>
                     `;
                     
@@ -1139,6 +1158,11 @@
                 fullscreenBtn.disabled = false;
             }
             
+            // 从JSON路径获取嵌套属性值
+            function getValueFromPath(obj, path) {
+                return path.split('.').reduce((o, p) => o && o[p], obj);
+            }
+            
             // 获取随机图片
             async function fetchRandomImage() {
                 if (isFetching) return;
@@ -1154,12 +1178,38 @@
                 abortController = new AbortController();
                 
                 try {
-                    const response = await fetch(selectedApi, {
+                    // 获取当前选择的API信息
+                    const currentApi = apiSources.find(api => api.url === selectedApi);
+                    let imageUrlToFetch = selectedApi;
+                    
+                    // 如果是JSON API，需要先获取JSON数据，然后提取图片URL
+                    if (currentApi && currentApi.jsonApi) {
+                        // 第一步：获取JSON数据
+                        const jsonResponse = await fetch(selectedApi, {
+                            signal: abortController.signal
+                        });
+                        
+                        if (!jsonResponse.ok) {
+                            throw new Error(`JSON请求失败! 状态: ${jsonResponse.status}`);
+                        }
+                        
+                        const jsonData = await jsonResponse.json();
+                        
+                        // 从JSON数据中提取图片URL
+                        imageUrlToFetch = getValueFromPath(jsonData, currentApi.jsonImagePath);
+                        
+                        if (!imageUrlToFetch) {
+                            throw new Error('无法从JSON数据中提取图片URL');
+                        }
+                    }
+                    
+                    // 第二步：获取实际图片
+                    const response = await fetch(imageUrlToFetch, {
                         signal: abortController.signal
                     });
                     
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(`图片请求失败! 状态: ${response.status}`);
                     }
                     
                     const blob = await response.blob();
