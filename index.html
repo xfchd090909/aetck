@@ -336,7 +336,7 @@
             transform: translateY(-5px);
             background-color: rgba(255, 255, 255, 0.08);
             border-color: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px极25px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         }
         
         .api-card.selected {
@@ -389,7 +389,7 @@
         
         .api-tag {
             font-size: 0.8rem;
-            padding: 极4px 10px;
+            padding: 4px 10px;
             border-radius: 20px;
             background-color: rgba(30, 144, 255, 0.2);
             color: #1e90ff;
@@ -401,7 +401,7 @@
         }
         
         .api-tag.mature {
-            background极-color: rgba(255, 107, 129, 0.2);
+            background-color: rgba(255, 107, 129, 0.2);
             color: #ff6b81;
         }
         
@@ -412,10 +412,10 @@
         
         .api-tag.game {
             background-color: rgba(255, 193, 7, 0.2);
-            color: #极ffc107;
+            color: #ffc107;
         }
         
-        .api极-tag.default {
+        .api-tag.default {
             background-color: rgba(156, 136, 255, 0.2);
             color: #9c88ff;
         }
@@ -453,7 +453,7 @@
             z-index: 4000;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.4极s ease;
+            transition: opacity 0.4s ease;
         }
         
         .warning-modal.active {
@@ -477,13 +477,13 @@
         }
         
         .warning-modal.active .warning-content {
-            transform: translate极Y(0) scale(1);
+            transform: translateY(0) scale(1);
             opacity: 1;
         }
         
         .warning-content.minor {
             background-color: rgba(46, 43, 15, 0.95);
-            border: 1极px solid rgba(255, 193, 7, 0.5);
+            border: 1px solid rgba(255, 193, 7, 0.5);
         }
         
         .warning-header {
@@ -527,7 +527,7 @@
         .warning-actions {
             display: flex;
             gap: 12px;
-           极 justify-content: center;
+            justify-content: center;
         }
         
         .warning-btn {
@@ -547,13 +547,13 @@
         }
         
         .confirm-btn.minor {
-            background: linear-gradient(45deg, #ffc极107, #e6ac00);
+            background: linear-gradient(45deg, #ffc107, #e6ac00);
             box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
         }
         
         .confirm-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(255, 107, 129, 极0.6);
+            box-shadow: 0 8px 20px rgba(255, 107, 129, 0.6);
         }
         
         .confirm-btn.minor:hover {
@@ -616,12 +616,12 @@
             pointer-events: all;
         }
         
-        .极info-content {
+        .info-content {
             position: relative;
             background-color: rgba(26, 35, 46, 0.95);
             border-radius: 18px;
             width: 95%;
-            max-width: 500极px;
+            max-width: 500px;
             padding: 25px 20px;
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
             z-index: 2;
@@ -651,9 +651,9 @@
         }
         
         .info-title {
-           极 font-size: 1.5rem;
+            font-size: 1.5rem;
             margin-bottom: 12px;
-            color: #1e90极ff;
+            color: #1e90ff;
         }
         
         .info-message {
@@ -715,7 +715,7 @@
             }
             
             .warning-btn {
-                width: 极100%;
+                width: 100%;
             }
         }
         
@@ -735,7 +735,7 @@
             }
             
             .modal-body {
-                padding: 0 15px 15极px;
+                padding: 0 15px 15px;
             }
             
             .api-card {
@@ -751,7 +751,7 @@
 <body>
     <div class="control-panel">
         <div class="button-group" id="button-group">
-            <button极 id="random-btn" title="随机图片">
+            <button id="random-btn" title="随机图片">
                 <i class="fas fa-random"></i>
             </button>
             <button id="toggle-api-btn" title="选择API源">
@@ -779,7 +779,7 @@
 
     <div class="toast" id="toast">请等待图片加载完成</div>
 
-    <div class="fullscreen-overlay" id极="fullscreen-overlay">
+    <div class="fullscreen-overlay" id="fullscreen-overlay">
         <i class="fas fa-times close-fullscreen" id="close-fullscreen"></i>
         <img class="fullscreen-image" id="fullscreen-image" src="" alt="全屏图片">
         <div class="image-info" id="image-info"></div>
@@ -791,7 +791,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title"><i class="fas fa-database"></i> API源选择</h2>
-                <button class="modal-close" id="modal-close"><极i class="fas fa-times"></i></button>
+                <button class="modal-close" id="modal-close"><i class="fas fa-times"></i></button>
             </div>
             
             <div class="modal-body">
@@ -814,7 +814,7 @@
                 <div class="warning-icon" id="warning-icon">
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
-                <h2 class="warning-title"极 id="warning-title">内容警告</h2>
+                <h2 class="warning-title" id="warning-title">内容警告</h2>
             </div>
             <div class="warning-message" id="warning-message">
                 因非全年龄段API开放机制，我们并不能控制及保证这些API资源的合法性，望斟酌后使用
@@ -830,7 +830,7 @@
     <div class="info-modal" id="info-modal">
         <div class="modal-backdrop" id="info-backdrop"></div>
         <div class="info-content" id="info-content">
-            <div class="极info-header">
+            <div class="info-header">
                 <div class="info-icon">
                     <i class="fas fa-info-circle"></i>
                 </div>
@@ -880,7 +880,7 @@
             const infoModal = document.getElementById('info-modal');
             const infoBackdrop = document.getElementById('info-backdrop');
             const infoConfirmBtn = document.getElementById('info-confirm-btn');
-            const infoMessage = document.getElementById('极info-message');
+            const infoMessage = document.getElementById('info-message');
             
             // 状态变量
             let currentImageUrl = '';
@@ -911,8 +911,7 @@
                     tags: ['minor-mature'],
                     mature: true,
                     matureType: 'minor',
-                    external: false,
-                    jsonPath: 'results[0].url' // JSON解析路径
+                    external: false
                 },
                 {
                     id: 'api-waifu',
@@ -921,8 +920,7 @@
                     tags: ['minor-mature'],
                     mature: true,
                     matureType: 'minor',
-                    external: false,
-                    jsonPath: 'images[0].url' // JSON解析路径
+                    external: false
                 },
                 {
                     id: 'api-mature',
@@ -931,8 +929,7 @@
                     tags: ['mature'],
                     mature: true,
                     matureType: 'mature',
-                    external: false,
-                    jsonPath: 'images[0].url' // JSON解析路径
+                    external: false
                 },
                 {
                     id: 'api-genshin',
@@ -955,7 +952,7 @@
                 {
                     id: 'api-bluearchive',
                     name: '外链-碧蓝档案',
-                    url: 'https://image.anos极u.top/pixiv/direct?r18=1&keyword=bluearchive',
+                    url: 'https://image.anosu.top/pixiv/direct?r18=1&keyword=bluearchive',
                     tags: ['mature'],
                     mature: true,
                     matureType: 'mature',
@@ -964,7 +961,7 @@
                 {
                     id: 'api-arknights',
                     name: '外链-明日方舟',
-                    url: 'https://image.anosu.top/pixiv/direct?r18极=1&keyword=arknights',
+                    url: 'https://image.anosu.top/pixiv/direct?r18=1&keyword=arknights',
                     tags: ['mature'],
                     mature: true,
                     matureType: 'mature',
@@ -992,7 +989,7 @@
                 
                 // 检查是否已经显示过信息弹窗
                 const hasSeenInfo = localStorage.getItem('hasSeenApiInfo20250908');
-                if (!hasSeen极Info) {
+                if (!hasSeenInfo) {
                     // 显示信息弹窗
                     openInfoModal();
                     // 设置标记，表示已经显示过
@@ -1012,7 +1009,6 @@
                     card.dataset.name = api.name;
                     card.dataset.matureType = api.matureType;
                     card.dataset.external = api.external;
-                    card.dataset.jsonPath = api.jsonPath || '';
                     
                     card.innerHTML = `
                         <div class="api-name">
@@ -1120,7 +1116,7 @@
             // 显示Toast提示
             function showToast(message) {
                 toastElement.textContent = message;
-                toastElement.classList.add极('show');
+                toastElement.classList.add('show');
                 
                 setTimeout(() => {
                     toastElement.classList.remove('show');
@@ -1141,19 +1137,6 @@
                 isFetching = false;
                 downloadBtn.disabled = false;
                 fullscreenBtn.disabled = false;
-            }
-            
-            // 从JSON对象中获取指定路径的值
-            function getValueFromPath(obj, path) {
-                return path.split('.').reduce((acc, part) => {
-                    const arrayMatch = part.match(/(\w+)\[(\d+)\]/);
-                    if (arrayMatch) {
-                        const arrayName = arrayMatch[1];
-                        const arrayIndex = parseInt(arrayMatch[2]);
-                        return acc && acc[arrayName] && acc[arrayName][arrayIndex];
-                    }
-                    return acc && acc[part];
-                }, obj);
             }
             
             // 获取随机图片
@@ -1179,45 +1162,7 @@
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     
-                    // 获取当前选中的API信息
-                    const selectedApiInfo = apiSources.find(api => api.url === selectedApi);
-                    let imageUrl = selectedApi;
-                    
-                    // 如果API返回的是JSON数据，需要解析其中的图片URL
-                    if (selectedApiInfo && selectedApiInfo.jsonPath) {
-                        const data = await response.json();
-                        imageUrl = getValueFromPath(data, selectedApiInfo.jsonPath);
-                        
-                        if (!imageUrl) {
-                            throw new Error('无法从API响应中获取图片URL');
-                        }
-                    } else {
-                        // 对于直接返回图片的API，直接使用blob
-                        const blob = await response.blob();
-                        currentImageBlob = blob;
-                        currentImageUrl = URL.createObjectURL(blob);
-                        
-                        // 设置背景
-                        document.body.style.backgroundImage = `url(${currentImageUrl})`;
-                        
-                        // 设置全屏图片
-                        fullscreenImage.src = currentImageUrl;
-                        
-                        hideLoading();
-                        showToast('图片加载成功');
-                        return;
-                    }
-                    
-                    // 获取实际的图片
-                    const imageResponse = await fetch(imageUrl, {
-                        signal: abortController.signal
-                    });
-                    
-                    if (!imageResponse.ok) {
-                        throw new Error('图片获取失败');
-                    }
-                    
-                    const blob = await imageResponse.blob();
+                    const blob = await response.blob();
                     currentImageBlob = blob;
                     currentImageUrl = URL.createObjectURL(blob);
                     
@@ -1280,7 +1225,7 @@
             
             modalBackdrop.addEventListener('click', closeModal);
             
-            modal极Close.addEventListener('click', closeModal);
+            modalClose.addEventListener('click', closeModal);
             
             warningBackdrop.addEventListener('click', closeWarningModal);
             
@@ -1299,7 +1244,7 @@
             
             infoBackdrop.addEventListener('click', closeInfoModal);
             
-            infoConfirmBtn.addEventListener('click', close极InfoModal);
+            infoConfirmBtn.addEventListener('click', closeInfoModal);
             
             cancelLoadingBtn.addEventListener('click', () => {
                 if (abortController) {
